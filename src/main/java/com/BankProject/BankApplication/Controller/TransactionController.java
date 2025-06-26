@@ -1,5 +1,7 @@
 package com.BankProject.BankApplication.Controller;
 
+import java.nio.file.AccessDeniedException;
+
 import javax.naming.directory.InvalidAttributesException;
 import javax.security.auth.login.AccountNotFoundException;
 
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.BankProject.BankApplication.Entity.Transactions;
 import com.BankProject.BankApplication.Service.TransactionService;
+import com.BankProject.BankApplication.Utils.TransactionResponseDTO;
 import com.BankProject.BankApplication.Utils.TransferSlip;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,17 +30,17 @@ public class TransactionController {
 
      // Displays transaction history
      @GetMapping("/history")
-     public ResponseEntity<Page<Transactions>> getTransactions(
+     public ResponseEntity<Page<TransactionResponseDTO>> getTransactions(
                @RequestParam(defaultValue = "0") int page,
                @RequestParam(defaultValue = "10") int size) {
-          Page<Transactions> transactions = transactionService.checkTransactionHistory(page, size);
+          Page<TransactionResponseDTO> transactions = transactionService.checkTransactionHistory(page, size);
           return ResponseEntity.ok(transactions);
      }
 
      @PostMapping("/deposit")
-     public ResponseEntity<?> deposit(@RequestBody Double amount) {
+     public ResponseEntity<?> deposit(@RequestBody double amount) {
           try {
-               Transactions transactions = transactionService.deposit(amount);
+               TransactionResponseDTO transactions = transactionService.deposit(amount);
                return ResponseEntity.status(HttpStatus.OK).body(transactions);
 
           } catch (Exception e) {
@@ -49,7 +52,7 @@ public class TransactionController {
      @PostMapping("/withdraw")
      public ResponseEntity<?> withdraw(@RequestBody Double amount) {
           try {
-               Transactions transactions = transactionService.withdraw(amount);
+               TransactionResponseDTO transactions = transactionService.withdraw(amount);
                return ResponseEntity.status(HttpStatus.OK).body(transactions);
 
           } catch (Exception e) {
@@ -61,12 +64,15 @@ public class TransactionController {
      @PostMapping("/transfer")
      public ResponseEntity<?> transferAmount(@RequestBody TransferSlip transferSlip) {
           try {
-               Transactions transactions = transactionService.transferAmount(transferSlip);
+               TransactionResponseDTO transactions = transactionService.transferAmount(transferSlip);
                return ResponseEntity.status(HttpStatus.OK).body(transactions);
           } catch (AccountNotFoundException e) {
                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 
           } catch (InvalidAttributesException e) {
+               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+
+          } catch (AccessDeniedException e) {
                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 
           }

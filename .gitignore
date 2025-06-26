@@ -7,6 +7,8 @@ target/
 .gitattributes
 mvnw
 mvnw.cmd
+README_COMPREHENSIVE.md
+README_UPDATED.md
 ### STS ###
 .apt_generated
 .classpath
