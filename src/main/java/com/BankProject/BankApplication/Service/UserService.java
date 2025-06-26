@@ -18,7 +18,6 @@ import com.BankProject.BankApplication.Repository.UserRepository;
 import com.BankProject.BankApplication.Utils.CustomUserInfo;
 import com.BankProject.BankApplication.Utils.UserAccountTemplate;
 
-
 @Service
 public class UserService {
      // Password encoder is declare to encode the raw password entered by the user
@@ -33,7 +32,7 @@ public class UserService {
      // ====================USER SIDE FUNCTIONALITIES=============================
 
      // registers a new user
-   @Transactional
+     @Transactional
      public CustomUserInfo registerUser(UserAccountTemplate userAccountTemplate) throws UserAlreadyExistsException {
           if (userRepository.findUserByEmailIgnoreCase(userAccountTemplate.getEmail()).isEmpty()) {
                User user = new User();
@@ -96,7 +95,7 @@ public class UserService {
           String email = SecurityContextHolder.getContext().getAuthentication().getName();
           User user = userRepository.findUserByEmailIgnoreCase(email)
                     .orElseThrow(() -> new UserNotFoundException("user for the given email  " + email + " not found"));
-       
+
           return accountService.checkBalance(user.getAccount().getAccountNumber());
      }
 
@@ -135,5 +134,40 @@ public class UserService {
 
      // =====================ADMIN SIDE
      // FUNCTIONALITIES==============================================
+
+     // Get current user info for dashboard
+     public CustomUserInfo getCurrentUserInfo() {
+          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+          String email = authentication.getName();
+
+          User user = userRepository.findUserByEmailIgnoreCase(email)
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+          return createCustomUserInfo(user);
+     }
+
+     // Find user by email
+     public User findUserByEmail(String email) {
+          return userRepository.findUserByEmailIgnoreCase(email)
+                    .orElse(null);
+     }
+
+     // Change password with current password validation
+     public void changePassword(String currentPassword, String newPassword) {
+          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+          String email = authentication.getName();
+
+          User user = userRepository.findUserByEmailIgnoreCase(email)
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+          // Verify current password
+          if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+               throw new IllegalArgumentException("Current password is incorrect");
+          }
+
+          // Update password
+          user.setPassword(passwordEncoder.encode(newPassword));
+          userRepository.save(user);
+     }
 
 }
