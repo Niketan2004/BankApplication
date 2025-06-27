@@ -27,26 +27,32 @@ A modern, responsive React frontend for the SecureBank application built with Ta
 ## 📁 Project Structure
 
 ```
-src/
-├── components/
-│   └── common/
-│       ├── Navbar.js          # Navigation component
-│       ├── Footer.js          # Footer component
-│       └── ProtectedRoute.js  # Route protection
-├── contexts/
-│   └── AuthContext.js         # Authentication context
-├── pages/
-│   ├── LandingPage.js         # Home/landing page
-│   ├── LoginPage.js           # User login
-│   ├── RegisterPage.js        # User registration
-│   ├── Dashboard.js           # Main dashboard
-│   ├── TransactionHistory.js  # Transaction history
-│   └── Profile.js             # User profile
-├── services/
-│   └── api.js                 # API service layer
-├── App.js                     # Main app component
-├── index.js                   # App entry point
-└── index.css                  # Global styles and Tailwind
+    📂 src/                                # React source code
+          ├── 📄 App.js                          # Main App component with routing
+          ├── 📄 index.js                        # React entry point
+          ├── 📄 index.css                       # Global styles and utilities
+          │
+          ├── 📂 pages/                          # Page Components
+          │   ├── 📄 AdminDashboard.js           # Admin user management interface
+          │   ├── 📄 Dashboard.js                # User main dashboard
+          │   ├── 📄 LandingPage.js              # Home/marketing page
+          │   ├── 📄 LoginPage.js                # User login page
+          │   ├── 📄 Profile.js                  # User profile management
+          │   ├── 📄 RegisterPage.js             # User registration form
+          │   └── 📄 TransactionHistory.js       # Transaction records view
+          │
+          ├── 📂 components/common/              # Reusable Components
+          │   ├── 📄 AdminRoute.js               # Admin access route guard
+          │   ├── 📄 Footer.js                   # Page footer with branding
+          │   ├── 📄 Navbar.js                   # Navigation bar with logo
+          │   └── 📄 ProtectedRoute.js           # User authentication guard
+          │
+          ├── 📂 contexts/                       # React Context Providers
+          │   └── 📄 AuthContext.js              # Authentication state management
+          │
+          └── 📂 services/                       # API Services
+              └── 📄 api.js                      # HTTP client & API methods
+   
 ```
 
 ## 🎨 Design System
@@ -146,11 +152,7 @@ The application is fully responsive with breakpoints:
 - Automatic token refresh
 - Protected routes
 
-### Input Validation
-- Client-side form validation
-- XSS prevention
-- Input sanitization
-- Error boundary handling
+
 
 ## 🎯 User Experience
 
@@ -172,55 +174,7 @@ The application is fully responsive with breakpoints:
 - Keyboard navigation
 - Screen reader support
 
-## 📊 Performance
 
-### Optimization
-- Code splitting with React.lazy
-- Image optimization
-- Bundle size optimization
-- Tree shaking
-
-### Caching
-- API response caching
-- Static asset caching
-- Service worker support
-
-## 🧪 Testing
-
-### Running Tests
-```bash
-npm test
-```
-
-### Testing Strategy
-- Unit tests for components
-- Integration tests for user flows
-- E2E tests with Cypress
-- API mocking for tests
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-1. Connect GitHub repository
-2. Set environment variables
-3. Deploy automatically
-
-### Netlify
-1. Build project: `npm run build`
-2. Deploy `build` folder
-3. Configure redirects for SPA
-
-### Docker
-```dockerfile
-FROM node:16-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
-```
 
 ## 🔄 Integration with Backend
 
@@ -242,71 +196,13 @@ CMD ["npm", "start"]
 4. Success: Store token, redirect to dashboard
 5. Failure: Show error message
 
-## 🛠️ Development
-
-### Code Style
-- ESLint configuration
-- Prettier formatting
-- Consistent naming conventions
-- Component documentation
-
-### Git Workflow
-- Feature branches
-- Pull request reviews
-- Automated testing
-- Semantic versioning
 
 ## 📈 Future Enhancements
 
 ### Planned Features
-- [ ] Dark mode support
-- [ ] Multi-language support
 - [ ] Advanced charts and analytics
 - [ ] Real-time notifications with WebSocket
 - [ ] Mobile app with React Native
 - [ ] Offline support with PWA
 - [ ] Advanced security features
-- [ ] Biometric authentication
 
-### Performance Improvements
-- [ ] Virtual scrolling for large lists
-- [ ] Image lazy loading
-- [ ] Code splitting optimization
-- [ ] Service worker caching
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **CORS Errors**
-   - Ensure backend allows frontend origin
-   - Check proxy configuration
-
-2. **Authentication Issues**
-   - Verify backend is running
-   - Check network requests in DevTools
-
-3. **Build Errors**
-   - Clear node_modules and reinstall
-   - Check Node.js version compatibility
-
-### Debug Mode
-Enable debug logging:
-```javascript
-// Add to index.js
-if (process.env.NODE_ENV === 'development') {
-  console.log('Debug mode enabled');
-}
-```
-
-## 📞 Support
-
-For development support:
-- Check browser console for errors
-- Review network requests in DevTools
-- Verify backend API responses
-- Check authentication token validity
-
----
-
-**Built with ❤️ using React + Tailwind CSS**
