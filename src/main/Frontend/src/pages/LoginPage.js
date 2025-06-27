@@ -59,27 +59,27 @@ const LoginPage = () => {
      };
 
      return (
-          <div className="min-h-screen flex">
+          <div className="min-h-screen flex flex-col lg:flex-row overflow-x-hidden">
                {/* Left Side - Form */}
-               <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-md w-full space-y-8">
+               <div className="flex-1 flex items-center justify-center px-3 sm:px-4 lg:px-6 xl:px-8 py-8 lg:py-12 w-full min-w-0">
+                    <div className="max-w-md w-full space-y-6 sm:space-y-8 min-w-0">
                          <div className="text-center">
-                              <h2 className="text-3xl font-bold text-gray-900">
+                              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
                                    Welcome Back
                               </h2>
-                              <p className="mt-2 text-gray-600">
+                              <p className="mt-2 text-sm sm:text-base text-gray-600 break-words">
                                    Sign in to your SecureBank account
                               </p>
                          </div>
 
-                         <form className="space-y-6" onSubmit={handleSubmit}>
-                              <div>
+                         <form className="space-y-4 sm:space-y-6 w-full" onSubmit={handleSubmit}>
+                              <div className="w-full">
                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                                         Email Address
                                    </label>
-                                   <div className="relative">
+                                   <div className="relative w-full">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                             <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                                             <EnvelopeIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                                         </div>
                                         <input
                                              id="email"
@@ -88,22 +88,22 @@ const LoginPage = () => {
                                              autoComplete="email"
                                              value={formData.email}
                                              onChange={handleChange}
-                                             className={`input-field pl-10 ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
+                                             className={`input-field pl-8 sm:pl-10 w-full ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
                                              placeholder="Enter your email"
                                         />
                                    </div>
                                    {errors.email && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                                        <p className="mt-1 text-sm text-red-600 break-words">{errors.email}</p>
                                    )}
                               </div>
 
-                              <div>
+                              <div className="w-full">
                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                                         Password
                                    </label>
-                                   <div className="relative">
+                                   <div className="relative w-full">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                             <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                                             <LockClosedIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                                         </div>
                                         <input
                                              id="password"
@@ -112,7 +112,7 @@ const LoginPage = () => {
                                              autoComplete="current-password"
                                              value={formData.password}
                                              onChange={handleChange}
-                                             className={`input-field pl-10 pr-10 ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
+                                             className={`input-field pl-8 sm:pl-10 pr-10 w-full ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
                                              placeholder="Enter your password"
                                         />
                                         <button
@@ -121,18 +121,18 @@ const LoginPage = () => {
                                              onClick={() => setShowPassword(!showPassword)}
                                         >
                                              {showPassword ? (
-                                                  <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                                                  <EyeSlashIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-gray-600" />
                                              ) : (
-                                                  <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                                                  <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-gray-600" />
                                              )}
                                         </button>
                                    </div>
                                    {errors.password && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                                        <p className="mt-1 text-sm text-red-600 break-words">{errors.password}</p>
                                    )}
                               </div>
 
-                              <div className="flex items-center justify-between">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                                    <div className="flex items-center">
                                         <input
                                              id="remember-me"

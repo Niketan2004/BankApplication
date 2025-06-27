@@ -40,7 +40,6 @@ public class AccountService {
      // CHECK ACOUNT BALANCE
      public Double checkBalance(Long accountNumber) throws AccountNotFoundException {
           return accountRepository.findById(accountNumber).get().getBalance();
-
      }
 
 }

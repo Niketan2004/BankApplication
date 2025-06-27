@@ -147,42 +147,42 @@ const TransactionHistory = () => {
      };
 
      return (
-          <div className="min-h-screen bg-gray-50 py-8">
-               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="min-h-screen bg-gray-50 py-4 sm:py-8 overflow-x-hidden">
+               <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
                     {/* Header */}
-                    <div className="mb-8">
-                         <h1 className="text-3xl font-bold text-gray-900">Transaction History</h1>
-                         <p className="text-gray-600 mt-2">
+                    <div className="mb-6 sm:mb-8">
+                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">Transaction History</h1>
+                         <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base break-words">
                               View and manage all your banking transactions
                          </p>
                     </div>
 
                     {/* Filters and Search */}
-                    <div className="card mb-6">
-                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="card mb-4 sm:mb-6 w-full">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full">
                               {/* Search */}
-                              <div className="relative">
+                              <div className="relative w-full min-w-0">
                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                                        <MagnifyingGlassIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                                    </div>
                                    <input
                                         type="text"
                                         placeholder="Search transactions..."
                                         value={filters.search}
                                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                                        className="input-field pl-10"
+                                        className="input-field pl-8 sm:pl-10 w-full"
                                    />
                               </div>
 
                               {/* Type Filter */}
-                              <div className="relative">
+                              <div className="relative w-full min-w-0">
                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <FunnelIcon className="h-5 w-5 text-gray-400" />
+                                        <FunnelIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                                    </div>
                                    <select
                                         value={filters.type}
                                         onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-                                        className="input-field pl-10"
+                                        className="input-field pl-8 sm:pl-10 w-full"
                                    >
                                         <option value="all">All Types</option>
                                         <option value="deposit">Deposit</option>
@@ -194,30 +194,32 @@ const TransactionHistory = () => {
                               </div>
 
                               {/* Export Button */}
-                              <button
-                                   onClick={exportTransactions}
-                                   className="btn-secondary flex items-center justify-center space-x-2"
-                              >
-                                   <DocumentArrowDownIcon className="h-5 w-5" />
-                                   <span>Export CSV</span>
-                              </button>
+                              <div className="flex items-end w-full min-w-0">
+                                   <button
+                                        onClick={exportTransactions}
+                                        className="btn-secondary flex items-center justify-center space-x-1 sm:space-x-2 w-full"
+                                   >
+                                        <DocumentArrowDownIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                                        <span className="text-xs sm:text-sm">Export CSV</span>
+                                   </button>
+                              </div>
                          </div>
                     </div>
 
                     {/* Transaction List */}
                     <div className="card">
-                         <div className="flex items-center justify-between mb-6">
-                              <h2 className="text-lg font-semibold text-gray-900">
+                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+                              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
                                    All Transactions ({pagination.totalElements})
                               </h2>
 
                               {/* Page Size Selector */}
                               <div className="flex items-center space-x-2">
-                                   <span className="text-sm text-gray-600">Show:</span>
+                                   <span className="text-xs sm:text-sm text-gray-600">Show:</span>
                                    <select
                                         value={pagination.size}
                                         onChange={(e) => handleSizeChange(Number(e.target.value))}
-                                        className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                        className="border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm"
                                    >
                                         <option value={5}>5</option>
                                         <option value={10}>10</option>
@@ -234,20 +236,20 @@ const TransactionHistory = () => {
                          ) : filteredTransactions.length > 0 ? (
                               <>
                                    {/* Desktop Table */}
-                                   <div className="hidden md:block overflow-x-auto">
+                                   <div className="hidden md:block overflow-x-auto table-responsive w-full">
                                         <table className="min-w-full divide-y divide-gray-200">
                                              <thead className="bg-gray-50">
                                                   <tr>
-                                                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                       <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                             Transaction
                                                        </th>
-                                                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                       <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                             Date & Time
                                                        </th>
-                                                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                       <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                             Amount
                                                        </th>
-                                                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                       <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                             Transaction ID
                                                        </th>
                                                   </tr>
@@ -255,28 +257,28 @@ const TransactionHistory = () => {
                                              <tbody className="bg-white divide-y divide-gray-200">
                                                   {filteredTransactions.map((transaction) => (
                                                        <tr key={transaction.transactionId} className="hover:bg-gray-50">
-                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                                                                  <div className="flex items-center">
-                                                                      <div className={`p-2 rounded-lg ${getTransactionBg(transaction.type)}`}>
+                                                                      <div className={`p-1.5 sm:p-2 rounded-lg ${getTransactionBg(transaction.type)}`}>
                                                                            {getTransactionIcon(transaction.type)}
                                                                       </div>
-                                                                      <div className="ml-3">
-                                                                           <div className="text-sm font-medium text-gray-900">
+                                                                      <div className="ml-2 sm:ml-3 min-w-0">
+                                                                           <div className="text-xs sm:text-sm font-medium text-gray-900 break-words">
                                                                                 {transaction.type}
                                                                            </div>
                                                                       </div>
                                                                  </div>
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
                                                                  {formatDate(transaction.time)}
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                                 <span className={`text-sm font-semibold ${getTransactionColor(transaction.type)}`}>
+                                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                                                                 <span className={`text-xs sm:text-sm font-semibold ${getTransactionColor(transaction.type)}`}>
                                                                       {transaction.type === 'DEPOSIT' || transaction.type === 'CREDIT' ? '+' : '-'}
                                                                       {formatCurrency(transaction.amount)}
                                                                  </span>
                                                             </td>
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
+                                                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600 font-mono break-all">
                                                                  {transaction.transactionId}
                                                             </td>
                                                        </tr>
@@ -320,45 +322,47 @@ const TransactionHistory = () => {
 
                                    {/* Pagination */}
                                    {pagination.totalPages > 1 && (
-                                        <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
-                                             <div className="text-sm text-gray-600">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200 space-y-3 sm:space-y-0">
+                                             <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                                                   Showing {pagination.currentPage * pagination.size + 1} to{' '}
                                                   {Math.min((pagination.currentPage + 1) * pagination.size, pagination.totalElements)} of{' '}
                                                   {pagination.totalElements} results
                                              </div>
 
-                                             <div className="flex items-center space-x-2">
+                                             <div className="flex items-center justify-center space-x-1 sm:space-x-2 overflow-x-auto">
                                                   <button
                                                        onClick={() => handlePageChange(pagination.currentPage - 1)}
                                                        disabled={pagination.currentPage === 0}
-                                                       className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                       className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                                   >
                                                        Previous
                                                   </button>
 
                                                   {/* Page Numbers */}
-                                                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                                                       const pageNum = Math.max(0, pagination.currentPage - 2) + i;
-                                                       if (pageNum >= pagination.totalPages) return null;
+                                                  <div className="flex space-x-1 sm:space-x-2">
+                                                       {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                                                            const pageNum = Math.max(0, pagination.currentPage - 2) + i;
+                                                            if (pageNum >= pagination.totalPages) return null;
 
-                                                       return (
-                                                            <button
-                                                                 key={pageNum}
-                                                                 onClick={() => handlePageChange(pageNum)}
-                                                                 className={`px-3 py-1 text-sm border rounded-md ${pageNum === pagination.currentPage
+                                                            return (
+                                                                 <button
+                                                                      key={pageNum}
+                                                                      onClick={() => handlePageChange(pageNum)}
+                                                                      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border rounded-md ${pageNum === pagination.currentPage
                                                                            ? 'bg-banking-600 text-white border-banking-600'
                                                                            : 'border-gray-300 hover:bg-gray-50'
-                                                                      }`}
-                                                            >
-                                                                 {pageNum + 1}
-                                                            </button>
-                                                       );
-                                                  })}
+                                                                           }`}
+                                                                 >
+                                                                      {pageNum + 1}
+                                                                 </button>
+                                                            );
+                                                       })}
+                                                  </div>
 
                                                   <button
                                                        onClick={() => handlePageChange(pagination.currentPage + 1)}
                                                        disabled={pagination.currentPage >= pagination.totalPages - 1}
-                                                       className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                       className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                                   >
                                                        Next
                                                   </button>

@@ -48,25 +48,25 @@ const LandingPage = () => {
           }
      ];
 
-     const stats = [
-          { number: '10K+', label: 'Happy Customers' },
-          { number: '₹50M+', label: 'Total Transactions' },
-          { number: '99.9%', label: 'Uptime' },
-          { number: '24/7', label: 'Support' }
-     ];
+     // const stats = [
+     //      { number: '10K+', label: 'Happy Customers' },
+     //      { number: '₹50M+', label: 'Total Transactions' },
+     //      { number: '99.9%', label: 'Uptime' },
+     //      { number: '24/7', label: 'Support' }
+     // ];
 
      return (
           <div className="min-h-screen">
                {/* Hero Section */}
-               <section className="gradient-bg text-white py-20">
+               <section className="gradient-bg text-white py-12 sm:py-16 lg:py-20">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                               <div>
-                                   <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
+                                   <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
                                         Modern Banking
                                         <span className="block text-banking-200">Made Simple</span>
                                    </h1>
-                                   <p className="text-xl text-banking-100 mb-8 leading-relaxed">
+                                   <p className="text-lg sm:text-xl text-banking-100 mb-8 leading-relaxed">
                                         Experience the future of banking with SecureBank. Fast, secure, and user-friendly
                                         online banking platform built with cutting-edge technology.
                                    </p>
@@ -74,23 +74,23 @@ const LandingPage = () => {
                                         {isAuthenticated ? (
                                              <Link
                                                   to="/dashboard"
-                                                  className="inline-flex items-center justify-center px-8 py-4 bg-white text-banking-600 font-semibold rounded-lg hover:bg-banking-50 transition-colors group"
+                                                  className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-white text-banking-600 font-semibold rounded-lg hover:bg-banking-50 transition-colors group"
                                              >
                                                   Go to Dashboard
-                                                  <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                                  <ArrowRightIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                                              </Link>
                                         ) : (
                                              <>
                                                   <Link
                                                        to="/register"
-                                                       className="inline-flex items-center justify-center px-8 py-4 bg-white text-banking-600 font-semibold rounded-lg hover:bg-banking-50 transition-colors group"
+                                                       className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-white text-banking-600 font-semibold rounded-lg hover:bg-banking-50 transition-colors group"
                                                   >
                                                        Get Started Free
-                                                       <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                                       <ArrowRightIcon className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                                                   </Link>
                                                   <Link
                                                        to="/login"
-                                                       className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-banking-600 transition-colors"
+                                                       className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-banking-600 transition-colors"
                                                   >
                                                        Sign In
                                                   </Link>
@@ -99,14 +99,14 @@ const LandingPage = () => {
                                    </div>
                               </div>
 
-                              <div className="relative">
-                                   <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                              <div className="relative lg:mt-0 mt-8">
+                                   <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/20">
                                         <div className="flex items-center justify-between mb-6">
                                              <div className="flex items-center space-x-3">
                                                   <div className="bg-white/20 p-2 rounded-lg">
-                                                       <BanknotesIcon className="h-6 w-6 text-white" />
+                                                       <BanknotesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                                   </div>
-                                                  <span className="font-semibold text-lg">Account Overview</span>
+                                                  <span className="font-semibold text-base sm:text-lg">Account Overview</span>
                                              </div>
                                              <span className="text-banking-200 text-sm">Demo</span>
                                         </div>
@@ -114,17 +114,17 @@ const LandingPage = () => {
                                         <div className="space-y-4">
                                              <div className="bg-white/10 rounded-lg p-4">
                                                   <p className="text-banking-200 text-sm">Current Balance</p>
-                                                  <p className="text-3xl font-bold">₹1,25,450.00</p>
+                                                  <p className="text-2xl sm:text-3xl font-bold">₹1,25,450.00</p>
                                              </div>
 
                                              <div className="grid grid-cols-2 gap-4">
-                                                  <div className="bg-white/10 rounded-lg p-4">
-                                                       <p className="text-banking-200 text-sm">Income</p>
-                                                       <p className="text-lg font-semibold text-green-300">+₹25,000</p>
+                                                  <div className="bg-white/10 rounded-lg p-3 sm:p-4">
+                                                       <p className="text-banking-200 text-xs sm:text-sm">Income</p>
+                                                       <p className="text-base sm:text-lg font-semibold text-green-300">+₹25,000</p>
                                                   </div>
-                                                  <div className="bg-white/10 rounded-lg p-4">
-                                                       <p className="text-banking-200 text-sm">Expenses</p>
-                                                       <p className="text-lg font-semibold text-red-300">-₹8,450</p>
+                                                  <div className="bg-white/10 rounded-lg p-3 sm:p-4">
+                                                       <p className="text-banking-200 text-xs sm:text-sm">Expenses</p>
+                                                       <p className="text-base sm:text-lg font-semibold text-red-300">-₹8,450</p>
                                                   </div>
                                              </div>
                                         </div>
@@ -134,23 +134,23 @@ const LandingPage = () => {
                     </div>
                </section>
 
-               {/* Stats Section */}
-               <section className="py-16 bg-white">
+               {/* Stats Section
+               <section className="py-12 sm:py-16 bg-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
                               {stats.map((stat, index) => (
                                    <div key={index} className="text-center">
-                                        <div className="text-3xl font-bold text-banking-600 mb-2">
+                                        <div className="text-2xl sm:text-3xl font-bold text-banking-600 mb-2">
                                              {stat.number}
                                         </div>
-                                        <div className="text-gray-600 font-medium">
+                                        <div className="text-sm sm:text-base text-gray-600 font-medium">
                                              {stat.label}
                                         </div>
                                    </div>
                               ))}
                          </div>
                     </div>
-               </section>
+               </section> */}
 
                {/* Features Section */}
                <section className="py-20 bg-gray-50">

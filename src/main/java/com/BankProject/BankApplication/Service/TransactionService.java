@@ -42,7 +42,6 @@ public class TransactionService {
      public Page<TransactionResponseDTO> checkTransactionHistory(int page, int size) {
           User user = findUser();
           Pageable pageable = PageRequest.of(page, size);
-
           return transactionRepository.findByAccount_AccountNumber(user.getAccount().getAccountNumber(), pageable)
                     .map(transaction -> new TransactionResponseDTO(
                               transaction.getTransactionId(),
@@ -50,7 +49,6 @@ public class TransactionService {
                               transaction.getType(),
                               transaction.getTime(),
                               transaction.getAccount().getAccountNumber()));
-
      }
 
      // Deposit Amount
@@ -63,7 +61,6 @@ public class TransactionService {
           account.setBalance(account.getBalance() + amount);
           accountRepository.save(account);
           return createTransactions(account, amount, TransactionTypes.DEPOSIT);
-
      }
 
      // Withdraw amount
@@ -90,15 +87,12 @@ public class TransactionService {
                     || transferSlip.getAmount() < 1.0) {
                throw new InvalidAttributesException("Please give valid data!");
           }
-
           String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
           // this is the account of the sender
           Account senderAccount = accountRepository.findById(transferSlip.getSenderAccountNumber())
                     .orElseThrow(() -> new AccountNotFoundException(
                               "Account with given account number is not found "
                                         + transferSlip.getSenderAccountNumber()));
-
           if (!senderAccount.getUser().getEmail().equals(email)) {
                throw new AccessDeniedException("You can only transfer from your account");
           }
@@ -130,10 +124,8 @@ public class TransactionService {
           accountRepository.save(recieverAccount);
           // CREATED TRANSACTION FOR THE RECIEVERS ACCOUNT
           createTransactions(recieverAccount, transferSlip.getAmount(), TransactionTypes.CREDIT);
-
           // RETURNS SENDERS TRANSACTIONS DETAILS
           return senderTransactions;
-
      }
 
      // Initiates transaction
@@ -145,16 +137,13 @@ public class TransactionService {
           transaction.setAmount(amount);
           transaction.setTime(LocalDateTime.now());
           transactionRepository.save(transaction); // Save transaction record
-
           TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
           transactionResponseDTO.setAmount(amount);
           transactionResponseDTO.setTime(transaction.getTime());
           transactionResponseDTO.setTransactionId(transaction.getTransactionId());
           transactionResponseDTO.setType(transaction.getType());
-
           transactionResponseDTO.setAccountNumber(account.getAccountNumber());
           return transactionResponseDTO;
-
      }
 
      // Finds the respective user

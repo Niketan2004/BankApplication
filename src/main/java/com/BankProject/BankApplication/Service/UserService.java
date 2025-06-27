@@ -1,10 +1,15 @@
 package com.BankProject.BankApplication.Service;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.BankProject.BankApplication.Entity.User;
+import com.BankProject.BankApplication.Enum.Role;
 import com.BankProject.BankApplication.Exceptions.UserAlreadyExistsException;
 import com.BankProject.BankApplication.Exceptions.UserNotFoundException;
 import com.BankProject.BankApplication.Repository.UserRepository;
@@ -82,7 +88,9 @@ public class UserService {
      // deletes the user from the database
 
      public Boolean deleteUser(String id) throws AccessDeniedException {
-          if (validateUser(id)) {
+          boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+          if (isAdmin || validateUser(id)) {
                userRepository.deleteById(id);
                return true;
           } else {
@@ -95,7 +103,6 @@ public class UserService {
           String email = SecurityContextHolder.getContext().getAuthentication().getName();
           User user = userRepository.findUserByEmailIgnoreCase(email)
                     .orElseThrow(() -> new UserNotFoundException("user for the given email  " + email + " not found"));
-
           return accountService.checkBalance(user.getAccount().getAccountNumber());
      }
 
@@ -130,19 +137,13 @@ public class UserService {
           customUserInfo.setAccountType(user.getAccount().getAccountType());
           return customUserInfo;
      }
-     // ======================================================================
-
-     // =====================ADMIN SIDE
-     // FUNCTIONALITIES==============================================
 
      // Get current user info for dashboard
      public CustomUserInfo getCurrentUserInfo() {
           Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
           String email = authentication.getName();
-
           User user = userRepository.findUserByEmailIgnoreCase(email)
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
-
           return createCustomUserInfo(user);
      }
 
@@ -156,18 +157,39 @@ public class UserService {
      public void changePassword(String currentPassword, String newPassword) {
           Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
           String email = authentication.getName();
-
           User user = userRepository.findUserByEmailIgnoreCase(email)
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
-
           // Verify current password
           if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
                throw new IllegalArgumentException("Current password is incorrect");
           }
-
           // Update password
           user.setPassword(passwordEncoder.encode(newPassword));
           userRepository.save(user);
      }
 
+     // ======================================================================
+
+     // =====================ADMIN SIDE FUNCTIONALITIES========================
+
+     public Page<CustomUserInfo> getAllUsers(int page, int size) {
+          Pageable pageable = PageRequest.of(page, size);
+          Page<User> userPage = userRepository.findAll(pageable);
+          List<CustomUserInfo> filteredUsers = userPage
+                    .stream()
+                    .filter(user -> user.getRole() == Role.USER && user.getAccount() != null)
+                    .map(user -> new CustomUserInfo(
+                              user.getUserId(),
+                              user.getFullName(),
+                              user.getEmail(),
+                              user.getRole(),
+                              user.getAccount().getAccountNumber(),
+                              user.getAccount().getBalance(),
+                              user.getAccount().getAccountType()))
+                    .toList();
+          return new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
+     }
+
+     // OTHER FUNCTIONALITIES SUCH AS DELETE AND CREATE USER IS APLLICABLE SAME AS
+     // THE IUSER METHODS
 }

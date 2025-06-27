@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.BankProject.BankApplication.Entity.Transactions;
 import com.BankProject.BankApplication.Service.TransactionService;
 import com.BankProject.BankApplication.Utils.TransactionResponseDTO;
 import com.BankProject.BankApplication.Utils.TransferSlip;
@@ -39,44 +38,21 @@ public class TransactionController {
 
      @PostMapping("/deposit")
      public ResponseEntity<?> deposit(@RequestBody double amount) {
-          try {
-               TransactionResponseDTO transactions = transactionService.deposit(amount);
-               return ResponseEntity.status(HttpStatus.OK).body(transactions);
-
-          } catch (Exception e) {
-
-               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-          }
+          TransactionResponseDTO transactions = transactionService.deposit(amount);
+          return ResponseEntity.status(HttpStatus.OK).body(transactions);
      }
 
      @PostMapping("/withdraw")
      public ResponseEntity<?> withdraw(@RequestBody Double amount) {
-          try {
-               TransactionResponseDTO transactions = transactionService.withdraw(amount);
-               return ResponseEntity.status(HttpStatus.OK).body(transactions);
-
-          } catch (Exception e) {
-               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-
-          }
+          TransactionResponseDTO transactions = transactionService.withdraw(amount);
+          return ResponseEntity.status(HttpStatus.OK).body(transactions);
      }
 
      @PostMapping("/transfer")
-     public ResponseEntity<?> transferAmount(@RequestBody TransferSlip transferSlip) {
-          try {
-               TransactionResponseDTO transactions = transactionService.transferAmount(transferSlip);
-               return ResponseEntity.status(HttpStatus.OK).body(transactions);
-          } catch (AccountNotFoundException e) {
-               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-
-          } catch (InvalidAttributesException e) {
-               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-
-          } catch (AccessDeniedException e) {
-               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-
-          }
-
+     public ResponseEntity<?> transferAmount(@RequestBody TransferSlip transferSlip)
+               throws AccountNotFoundException, AccessDeniedException, InvalidAttributesException {
+          TransactionResponseDTO transactions = transactionService.transferAmount(transferSlip);
+          return ResponseEntity.status(HttpStatus.OK).body(transactions);
      }
 
 }

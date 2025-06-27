@@ -34,6 +34,8 @@ public class SecurityConfig {
                     })
                     .authorizeHttpRequests(http -> {
                          http.requestMatchers("/login", "/api/**", "/actuator/**").permitAll()
+                                   .requestMatchers("/admin/**").hasRole("ADMIN")
+                                   .requestMatchers("/user/**", "/transactions/**").hasAnyRole("USER", "ADMIN")
                                    .anyRequest().authenticated();
                     })
                     .logout(logout -> {

@@ -152,20 +152,20 @@ const Dashboard = () => {
      };
 
      return (
-          <div className="min-h-screen bg-gray-50 py-8">
+          <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-8">
-                         <h1 className="text-3xl font-bold text-gray-900">
+                    <div className="mb-6 sm:mb-8">
+                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                               Welcome back, {user?.fullName}!
                          </h1>
-                         <p className="text-gray-600 mt-2">
+                         <p className="text-gray-600 mt-2 text-sm sm:text-base">
                               Manage your finances with ease and security.
                          </p>
                     </div>
 
                     {/* Account Overview */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                          {/* Balance Card */}
                          <div className="lg:col-span-2">
                               <div className="card">
@@ -181,19 +181,19 @@ const Dashboard = () => {
 
                                    <div className="mb-4">
                                         <p className="text-sm text-gray-600 mb-1">Current Balance</p>
-                                        <p className="text-4xl font-bold text-gray-900">
+                                        <p className="text-3xl sm:text-4xl font-bold text-gray-900">
                                              {showBalance ? formatCurrency(user?.balance || 0) : '••••••••'}
                                         </p>
                                    </div>
 
-                                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
                                         <div>
                                              <p className="text-sm text-gray-600">Account Number</p>
-                                             <p className="font-semibold text-gray-900">{user?.accountNumber}</p>
+                                             <p className="font-semibold text-gray-900 text-sm sm:text-base">{user?.accountNumber}</p>
                                         </div>
                                         <div>
                                              <p className="text-sm text-gray-600">Account Type</p>
-                                             <p className="font-semibold text-gray-900">{user?.accountType}</p>
+                                             <p className="font-semibold text-gray-900 text-sm sm:text-base">{user?.accountType}</p>
                                         </div>
                                    </div>
                               </div>
@@ -207,30 +207,30 @@ const Dashboard = () => {
                                         onClick={() => openTransactionModal('deposit')}
                                         className="w-full flex items-center space-x-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group"
                                    >
-                                        <div className="bg-green-600 p-2 rounded-lg group-hover:bg-green-700 transition-colors">
-                                             <ArrowDownIcon className="h-5 w-5 text-white" />
+                                        <div className="bg-green-600 p-2 rounded-lg group-hover:bg-green-700 transition-colors flex-shrink-0">
+                                             <ArrowDownIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                         </div>
-                                        <span className="font-medium text-green-700">Deposit Money</span>
+                                        <span className="font-medium text-green-700 text-sm sm:text-base">Deposit Money</span>
                                    </button>
 
                                    <button
                                         onClick={() => openTransactionModal('withdraw')}
                                         className="w-full flex items-center space-x-3 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition-colors group"
                                    >
-                                        <div className="bg-red-600 p-2 rounded-lg group-hover:bg-red-700 transition-colors">
-                                             <ArrowUpIcon className="h-5 w-5 text-white" />
+                                        <div className="bg-red-600 p-2 rounded-lg group-hover:bg-red-700 transition-colors flex-shrink-0">
+                                             <ArrowUpIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                         </div>
-                                        <span className="font-medium text-red-700">Withdraw Money</span>
+                                        <span className="font-medium text-red-700 text-sm sm:text-base">Withdraw Money</span>
                                    </button>
 
                                    <button
                                         onClick={() => openTransactionModal('transfer')}
                                         className="w-full flex items-center space-x-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
                                    >
-                                        <div className="bg-blue-600 p-2 rounded-lg group-hover:bg-blue-700 transition-colors">
-                                             <ArrowsRightLeftIcon className="h-5 w-5 text-white" />
+                                        <div className="bg-blue-600 p-2 rounded-lg group-hover:bg-blue-700 transition-colors flex-shrink-0">
+                                             <ArrowsRightLeftIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                         </div>
-                                        <span className="font-medium text-blue-700">Transfer Money</span>
+                                        <span className="font-medium text-blue-700 text-sm sm:text-base">Transfer Money</span>
                                    </button>
                               </div>
                          </div>
@@ -238,7 +238,7 @@ const Dashboard = () => {
 
                     {/* Recent Transactions */}
                     <div className="card">
-                         <div className="flex items-center justify-between mb-6">
+                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                               <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
                               <a
                                    href="/transactions"
@@ -257,21 +257,21 @@ const Dashboard = () => {
                                    {transactions.map((transaction) => (
                                         <div
                                              key={transaction.transactionId}
-                                             className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                             className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3"
                                         >
                                              <div className="flex items-center space-x-3">
                                                   <div className="bg-white p-2 rounded-lg">
                                                        {getTransactionIcon(transaction.type)}
                                                   </div>
                                                   <div>
-                                                       <p className="font-medium text-gray-900">{transaction.type}</p>
+                                                       <p className="font-medium text-gray-900 text-sm sm:text-base">{transaction.type}</p>
                                                        <p className="text-sm text-gray-600">
                                                             {formatDate(transaction.time)}
                                                        </p>
                                                   </div>
                                              </div>
-                                             <div className="text-right">
-                                                  <p className={`font-semibold ${getTransactionColor(transaction.type)}`}>
+                                             <div className="text-left sm:text-right ml-11 sm:ml-0">
+                                                  <p className={`font-semibold text-sm sm:text-base ${getTransactionColor(transaction.type)}`}>
                                                        {transaction.type === 'DEPOSIT' || transaction.type === 'CREDIT' ? '+' : '-'}
                                                        {formatCurrency(transaction.amount)}
                                                   </p>
@@ -295,14 +295,14 @@ const Dashboard = () => {
                {/* Transaction Modal */}
                {transactionModal.open && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                         <div className="bg-white rounded-xl max-w-md w-full p-6">
+                         <div className="bg-white rounded-lg sm:rounded-xl max-w-md w-full p-4 sm:p-6 mx-4">
                               <div className="flex items-center justify-between mb-4">
                                    <h3 className="text-lg font-semibold text-gray-900 capitalize">
                                         {transactionModal.type} Money
                                    </h3>
                                    <button
                                         onClick={closeTransactionModal}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        className="text-gray-400 hover:text-gray-600 p-1"
                                    >
                                         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -349,18 +349,18 @@ const Dashboard = () => {
                                         />
                                    </div>
 
-                                   <div className="flex space-x-3 pt-4">
+                                   <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-4">
                                         <button
                                              type="button"
                                              onClick={closeTransactionModal}
-                                             className="btn-secondary flex-1"
+                                             className="btn-secondary flex-1 order-2 sm:order-1"
                                         >
                                              Cancel
                                         </button>
                                         <button
                                              type="submit"
                                              disabled={loading[transactionModal.type]}
-                                             className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
+                                             className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50 order-1 sm:order-2"
                                         >
                                              {loading[transactionModal.type] ? (
                                                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
