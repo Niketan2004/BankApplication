@@ -8,7 +8,8 @@ import {
      ChartBarIcon,
      UserIcon,
      Bars3Icon,
-     XMarkIcon
+     XMarkIcon,
+     ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
@@ -38,8 +39,19 @@ const Navbar = () => {
                               {/* Logo and Brand */}
                               <div className="flex items-center">
                                    <Link to="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
-                                        <div className="bg-banking-600 p-1.5 sm:p-2 rounded-lg">
-                                             <BanknotesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                                        {/* Custom Logo Image */}
+                                        <div className="bg-banking-600 p-1.5 sm:p-2 rounded-lg flex items-center justify-center">
+                                             <img
+                                                  src="/logo.png"
+                                                  alt="SecureBank Logo"
+                                                  className="h-5 w-5 sm:h-6 sm:w-6 object-contain"
+                                                  onError={(e) => {
+                                                       // Fallback to icon if image fails to load
+                                                       e.target.style.display = 'none';
+                                                       e.target.nextSibling.style.display = 'block';
+                                                  }}
+                                             />
+                                             <BanknotesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white hidden" />
                                         </div>
                                         <span className="font-bold text-lg sm:text-xl text-gray-900">SecureBank</span>
                                    </Link>
@@ -49,29 +61,41 @@ const Navbar = () => {
                               <div className="hidden md:flex items-center space-x-1 lg:space-x-4">
                                    {isAuthenticated ? (
                                         <>
-                                             <Link
-                                                  to="/dashboard"
-                                                  className="flex items-center space-x-1 text-gray-600 hover:text-banking-600 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                                             >
-                                                  <ChartBarIcon className="h-4 w-4" />
-                                                  <span>Dashboard</span>
-                                             </Link>
+                                             {user?.role === 'ADMIN' ? (
+                                                  <Link
+                                                       to="/admin"
+                                                       className="flex items-center space-x-1 text-gray-600 hover:text-banking-600 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                                  >
+                                                       <ShieldCheckIcon className="h-4 w-4" />
+                                                       <span>Admin Dashboard</span>
+                                                  </Link>
+                                             ) : (
+                                                  <>
+                                                       <Link
+                                                            to="/dashboard"
+                                                            className="flex items-center space-x-1 text-gray-600 hover:text-banking-600 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                                       >
+                                                            <ChartBarIcon className="h-4 w-4" />
+                                                            <span>Dashboard</span>
+                                                       </Link>
 
-                                             <Link
-                                                  to="/transactions"
-                                                  className="flex items-center space-x-1 text-gray-600 hover:text-banking-600 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                                             >
-                                                  <BanknotesIcon className="h-4 w-4" />
-                                                  <span>Transactions</span>
-                                             </Link>
+                                                       <Link
+                                                            to="/transactions"
+                                                            className="flex items-center space-x-1 text-gray-600 hover:text-banking-600 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                                       >
+                                                            <BanknotesIcon className="h-4 w-4" />
+                                                            <span>Transactions</span>
+                                                       </Link>
 
-                                             <Link
-                                                  to="/profile"
-                                                  className="flex items-center space-x-1 text-gray-600 hover:text-banking-600 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                                             >
-                                                  <UserIcon className="h-4 w-4" />
-                                                  <span>Profile</span>
-                                             </Link>
+                                                       <Link
+                                                            to="/profile"
+                                                            className="flex items-center space-x-1 text-gray-600 hover:text-banking-600 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                                       >
+                                                            <UserIcon className="h-4 w-4" />
+                                                            <span>Profile</span>
+                                                       </Link>
+                                                  </>
+                                             )}
 
                                              {/* User Menu - Desktop */}
                                              <div className="flex items-center space-x-2 lg:space-x-3 ml-2 lg:ml-4 pl-2 lg:pl-4 border-l border-gray-200">
@@ -82,7 +106,7 @@ const Navbar = () => {
                                                                  {user?.fullName || 'User'}
                                                             </p>
                                                             <p className="text-xs text-gray-500">
-                                                                 Account: {user?.accountNumber}
+                                                                 {user?.role === 'ADMIN' ? 'Administrator' : `Account: ${user?.accountNumber || 'N/A'}`}
                                                             </p>
                                                        </div>
                                                   </div>
@@ -164,39 +188,52 @@ const Navbar = () => {
                                                                  {user?.fullName || 'User'}
                                                             </p>
                                                             <p className="text-xs text-gray-500">
-                                                                 Account: {user?.accountNumber}
+                                                                 {user?.role === 'ADMIN' ? 'Administrator' : `Account: ${user?.accountNumber || 'N/A'}`}
                                                             </p>
                                                        </div>
                                                   </div>
                                              </div>
 
                                              {/* Navigation Links */}
-                                             <Link
-                                                  to="/dashboard"
-                                                  onClick={closeMobileMenu}
-                                                  className="flex items-center space-x-3 text-gray-700 hover:text-banking-600 py-3 px-2 rounded-md transition-colors"
-                                             >
-                                                  <ChartBarIcon className="h-5 w-5" />
-                                                  <span>Dashboard</span>
-                                             </Link>
+                                             {user?.role === 'ADMIN' ? (
+                                                  <Link
+                                                       to="/admin"
+                                                       onClick={closeMobileMenu}
+                                                       className="flex items-center space-x-3 text-gray-700 hover:text-banking-600 py-3 px-2 rounded-md transition-colors"
+                                                  >
+                                                       <ShieldCheckIcon className="h-5 w-5" />
+                                                       <span>Admin Dashboard</span>
+                                                  </Link>
+                                             ) : (
+                                                  <>
+                                                       <Link
+                                                            to="/dashboard"
+                                                            onClick={closeMobileMenu}
+                                                            className="flex items-center space-x-3 text-gray-700 hover:text-banking-600 py-3 px-2 rounded-md transition-colors"
+                                                       >
+                                                            <ChartBarIcon className="h-5 w-5" />
+                                                            <span>Dashboard</span>
+                                                       </Link>
 
-                                             <Link
-                                                  to="/transactions"
-                                                  onClick={closeMobileMenu}
-                                                  className="flex items-center space-x-3 text-gray-700 hover:text-banking-600 py-3 px-2 rounded-md transition-colors"
-                                             >
-                                                  <BanknotesIcon className="h-5 w-5" />
-                                                  <span>Transactions</span>
-                                             </Link>
+                                                       <Link
+                                                            to="/transactions"
+                                                            onClick={closeMobileMenu}
+                                                            className="flex items-center space-x-3 text-gray-700 hover:text-banking-600 py-3 px-2 rounded-md transition-colors"
+                                                       >
+                                                            <BanknotesIcon className="h-5 w-5" />
+                                                            <span>Transactions</span>
+                                                       </Link>
 
-                                             <Link
-                                                  to="/profile"
-                                                  onClick={closeMobileMenu}
-                                                  className="flex items-center space-x-3 text-gray-700 hover:text-banking-600 py-3 px-2 rounded-md transition-colors"
-                                             >
-                                                  <UserIcon className="h-5 w-5" />
-                                                  <span>Profile</span>
-                                             </Link>
+                                                       <Link
+                                                            to="/profile"
+                                                            onClick={closeMobileMenu}
+                                                            className="flex items-center space-x-3 text-gray-700 hover:text-banking-600 py-3 px-2 rounded-md transition-colors"
+                                                       >
+                                                            <UserIcon className="h-5 w-5" />
+                                                            <span>Profile</span>
+                                                       </Link>
+                                                  </>
+                                             )}
 
                                              <button
                                                   onClick={handleLogout}

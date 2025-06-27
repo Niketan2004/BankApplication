@@ -298,40 +298,66 @@ const Profile = () => {
 
                          {/* Account Overview */}
                          <div className="space-y-3 sm:space-y-4 lg:space-y-6 w-full min-w-0">
-                              {/* Account Summary */}
-                              <div className="card w-full">
-                                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 break-words">Account Summary</h3>
+                              {/* Account Summary - Only show for non-admin users */}
+                              {user?.role !== 'ADMIN' && (
+                                   <div className="card w-full">
+                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 break-words">Account Summary</h3>
 
-                                   <div className="space-y-3 sm:space-y-4 w-full">
-                                        <div className="min-w-0">
-                                             <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                  Account Number
-                                             </label>
-                                             <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-                                                  <BanknotesIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
-                                                  <span className="text-gray-900 font-mono font-medium text-sm sm:text-base break-all min-w-0">{user?.accountNumber}</span>
+                                        <div className="space-y-3 sm:space-y-4 w-full">
+                                             <div className="min-w-0">
+                                                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                       Account Number
+                                                  </label>
+                                                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                                                       <BanknotesIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
+                                                       <span className="text-gray-900 font-mono font-medium text-sm sm:text-base break-all min-w-0">{user?.accountNumber || 'N/A'}</span>
+                                                  </div>
                                              </div>
-                                        </div>
 
-                                        <div className="min-w-0">
-                                             <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                  Account Type
-                                             </label>
-                                             <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${getAccountTypeColor(user?.accountType)}`}>
-                                                  {user?.accountType}
-                                             </span>
-                                        </div>
+                                             <div className="min-w-0">
+                                                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                       Account Type
+                                                  </label>
+                                                  <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium ${getAccountTypeColor(user?.accountType)}`}>
+                                                       {user?.accountType}
+                                                  </span>
+                                             </div>
 
-                                        <div className="min-w-0">
-                                             <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                  Current Balance
-                                             </label>
-                                             <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">
-                                                  {formatCurrency(user?.balance || 0)}
+                                             <div className="min-w-0">
+                                                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                       Current Balance
+                                                  </label>
+                                                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">
+                                                       {formatCurrency(user?.balance || 0)}
+                                                  </div>
                                              </div>
                                         </div>
                                    </div>
-                              </div>
+                              )}
+
+                              {/* Admin Info - Only show for admin users */}
+                              {user?.role === 'ADMIN' && (
+                                   <div className="card w-full">
+                                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 break-words">Administrator Profile</h3>
+                                        <div className="space-y-3 sm:space-y-4 w-full">
+                                             <div className="min-w-0">
+                                                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                       Role
+                                                  </label>
+                                                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                                                       <ShieldCheckIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 flex-shrink-0" />
+                                                       <span className="text-gray-900 font-medium text-sm sm:text-base">Administrator</span>
+                                                  </div>
+                                             </div>
+                                             <div className="min-w-0">
+                                                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                       Permissions
+                                                  </label>
+                                                  <p className="text-sm text-gray-700">Full system access, user management, and administrative controls</p>
+                                             </div>
+                                        </div>
+                                   </div>
+                              )}
 
                               {/* Security Section */}
                               <div className="card">

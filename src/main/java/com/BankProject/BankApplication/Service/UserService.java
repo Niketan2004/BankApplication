@@ -132,9 +132,19 @@ public class UserService {
           customUserInfo.setFullName(user.getFullName());
           customUserInfo.setEmail(user.getEmail());
           customUserInfo.setRole(user.getRole());
-          customUserInfo.setAccountNumber(user.getAccount().getAccountNumber());
-          customUserInfo.setBalance(user.getAccount().getBalance());
-          customUserInfo.setAccountType(user.getAccount().getAccountType());
+
+          // Check if user has an account (regular users have accounts, admins don't)
+          if (user.getAccount() != null) {
+               customUserInfo.setAccountNumber(user.getAccount().getAccountNumber());
+               customUserInfo.setBalance(user.getAccount().getBalance());
+               customUserInfo.setAccountType(user.getAccount().getAccountType());
+          } else {
+               // For admin users who don't have accounts
+               customUserInfo.setAccountNumber(null);
+               customUserInfo.setBalance(0.0);
+               customUserInfo.setAccountType(null);
+          }
+
           return customUserInfo;
      }
 

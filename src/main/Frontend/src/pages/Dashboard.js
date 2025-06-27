@@ -1,5 +1,26 @@
+/**
+ * User Dashboard Component
+ * 
+ * This component provides the main dashboard interface for regular bank users.
+ * It displays:
+ * - Account balance with toggle visibility option
+ * - Quick action buttons for deposit, withdraw, and transfer
+ * - Recent transaction history (last 5 transactions)
+ * - Account statistics and overview
+ * 
+ * Features:
+ * - Real-time balance updates after transactions
+ * - Modal-based transaction forms with validation
+ * - Responsive design for mobile and desktop
+ * - Loading states for better UX
+ * - Error handling with toast notifications
+ * 
+ * Note: Admin users are automatically redirected to the admin dashboard
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import {
@@ -13,25 +34,50 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
+     // Get authentication context and navigation function
      const { user, fetchUserData } = useAuth();
+     const navigate = useNavigate();
+
+     // State for storing recent transactions
      const [transactions, setTransactions] = useState([]);
+
+     // Redirect admin users to admin dashboard - they don't need user dashboard
+     useEffect(() => {
+          if (user?.role === 'ADMIN') {
+               navigate('/admin');
+               return;
+          }
+     }, [user, navigate]);
+
+     // Loading states for different operations to provide user feedback
      const [loading, setLoading] = useState({
-          transactions: false,
-          deposit: false,
-          withdraw: false,
-          transfer: false
-     });
-     const [showBalance, setShowBalance] = useState(true);
-     const [transactionModal, setTransactionModal] = useState({ open: false, type: '' });
-     const [transactionData, setTransactionData] = useState({
-          amount: '',
-          receiverAccount: ''
+          transactions: false,    // Loading recent transactions
+          deposit: false,        // Processing deposit
+          withdraw: false,       // Processing withdrawal
+          transfer: false        // Processing transfer
      });
 
+     // State to toggle balance visibility for privacy
+     const [showBalance, setShowBalance] = useState(true);
+
+     // Modal state for transaction forms (deposit, withdraw, transfer)
+     const [transactionModal, setTransactionModal] = useState({ open: false, type: '' });
+
+     // Form data for transaction inputs
+     const [transactionData, setTransactionData] = useState({
+          amount: '',
+          receiverAccount: ''    // Only used for transfers
+     });
+
+     // Fetch recent transactions when component mounts
      useEffect(() => {
           fetchRecentTransactions();
      }, []);
 
+     /**
+      * Fetches the 5 most recent transactions for the user
+      * Used to display recent activity on the dashboard
+      */
      const fetchRecentTransactions = async () => {
           try {
                setLoading(prev => ({ ...prev, transactions: true }));
@@ -44,25 +90,37 @@ const Dashboard = () => {
           }
      };
 
+     /**
+      * Handles all transaction operations (deposit, withdraw, transfer)
+      * Validates input, makes API calls, and updates user data
+      * 
+      * @param {string} type - Type of transaction ('deposit', 'withdraw', 'transfer')
+      */
      const handleTransaction = async (type) => {
+          // Validate amount input
           if (!transactionData.amount || parseFloat(transactionData.amount) <= 0) {
                toast.error('Please enter a valid amount');
                return;
           }
 
           try {
+               // Set loading state for the specific transaction type
                setLoading(prev => ({ ...prev, [type]: true }));
 
+               // Handle different transaction types
                switch (type) {
                     case 'deposit':
                          await api.deposit(parseFloat(transactionData.amount));
                          toast.success('Deposit successful!');
                          break;
+
                     case 'withdraw':
                          await api.withdraw(parseFloat(transactionData.amount));
                          toast.success('Withdrawal successful!');
                          break;
+
                     case 'transfer':
+                         // Additional validation for transfer - need receiver account
                          if (!transactionData.receiverAccount) {
                               toast.error('Please enter receiver account number');
                               return;

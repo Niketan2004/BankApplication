@@ -300,4 +300,40 @@
      .touch-target {
           @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
      }
+
+     /* Logo styling utilities */
+     .logo-container {
+          @apply flex items-center justify-center transition-all duration-200;
+     }
+
+     .logo-image {
+          @apply object-contain filter transition-all duration-200;
+     }
+
+     /* Logo hover effects */
+     .logo-container:hover .logo-image {
+          @apply brightness-110 scale-105;
+     }
+
+     /* Brand color utilities */
+     .brand-bg {
+          @apply bg-banking-600;
+     }
+
+     .brand-text {
+          @apply text-banking-600;
+     }
+
+     /* Logo responsiveness */
+     @media (max-width: 640px) {
+          .logo-image {
+               @apply h-5 w-5;
+          }
+     }
+
+     @media (min-width: 641px) {
+          .logo-image {
+               @apply h-6 w-6;
+          }
+     }
 }

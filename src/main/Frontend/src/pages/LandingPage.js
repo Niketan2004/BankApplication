@@ -1,3 +1,21 @@
+/**
+ * Landing Page Component
+ * 
+ * This is the main landing page that serves as the entry point for new visitors.
+ * It showcases the bank's features and services with a modern, responsive design.
+ * 
+ * Features:
+ * - Hero section with call-to-action buttons
+ * - Feature grid showcasing bank capabilities
+ * - Responsive design for all device sizes
+ * - Dynamic content based on authentication status
+ * - Professional banking theme with icons and animations
+ * 
+ * The page adapts its content based on whether the user is logged in:
+ * - Authenticated users see "Go to Dashboard" button
+ * - New visitors see "Get Started" and "Login" buttons
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,8 +31,11 @@ import {
 } from '@heroicons/react/24/outline';
 
 const LandingPage = () => {
+     // Check if user is currently authenticated
      const { isAuthenticated } = useAuth();
 
+     // Array of features to display in the features section
+     // Each feature has an icon, title, and description
      const features = [
           {
                icon: ShieldCheckIcon,
@@ -103,8 +124,18 @@ const LandingPage = () => {
                                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/20">
                                         <div className="flex items-center justify-between mb-6">
                                              <div className="flex items-center space-x-3">
-                                                  <div className="bg-white/20 p-2 rounded-lg">
-                                                       <BanknotesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                                                  <div className="bg-white/20 p-2 rounded-lg flex items-center justify-center">
+                                                       <img
+                                                            src="/logo.png"
+                                                            alt="SecureBank Logo"
+                                                            className="h-5 w-5 sm:h-6 sm:w-6 object-contain"
+                                                            onError={(e) => {
+                                                                 // Fallback to icon if image fails to load
+                                                                 e.target.style.display = 'none';
+                                                                 e.target.nextSibling.style.display = 'block';
+                                                            }}
+                                                       />
+                                                       <BanknotesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white hidden" />
                                                   </div>
                                                   <span className="font-semibold text-base sm:text-lg">Account Overview</span>
                                              </div>

@@ -1,3 +1,21 @@
+/**
+ * Footer Component
+ * 
+ * This component renders the footer section of the application with:
+ * - Brand information and description
+ * - Social media links (Facebook, Twitter, LinkedIn)
+ * - Service links for easy navigation
+ * - Support and contact information
+ * - Copyright notice with dynamic year
+ * 
+ * Features:
+ * - Responsive grid layout (stacks on mobile, 4 columns on desktop)
+ * - Interactive social media and service links
+ * - Professional banking theme with dark background
+ * - Hover effects for better user experience
+ * - Accessible design with proper ARIA labels
+ */
+
 import React from 'react';
 import { BanknotesIcon, HeartIcon } from '@heroicons/react/24/outline';
 
@@ -6,18 +24,34 @@ const Footer = () => {
           <footer className="bg-gray-900 text-white">
                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                         {/* Brand */}
+
+                         {/* Brand Section - spans 2 columns on desktop */}
                          <div className="col-span-1 md:col-span-2">
+                              {/* Brand logo and name */}
                               <div className="flex items-center space-x-2 mb-4">
-                                   <div className="bg-banking-600 p-2 rounded-lg">
-                                        <BanknotesIcon className="h-6 w-6 text-white" />
+                                   <div className="bg-banking-600 p-2 rounded-lg flex items-center justify-center">
+                                        <img
+                                             src="/logo.png"
+                                             alt="SecureBank Logo"
+                                             className="h-6 w-6 object-contain"
+                                             onError={(e) => {
+                                                  // Fallback to icon if image fails to load
+                                                  e.target.style.display = 'none';
+                                                  e.target.nextSibling.style.display = 'block';
+                                             }}
+                                        />
+                                        <BanknotesIcon className="h-6 w-6 text-white hidden" />
                                    </div>
                                    <span className="font-bold text-xl">SecureBank</span>
                               </div>
+
+                              {/* Brand description */}
                               <p className="text-gray-400 mb-4 max-w-md">
                                    Your trusted partner for secure and professional banking services.
                                    Built with cutting-edge technology to keep your finances safe.
                               </p>
+
+                              {/* Social media links with hover effects */}
                               <div className="flex space-x-4">
                                    <button type="button" className="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
                                         <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -37,7 +71,7 @@ const Footer = () => {
                               </div>
                          </div>
 
-                         {/* Services */}
+                         {/* Services Section */}
                          <div>
                               <h3 className="font-semibold text-lg mb-4">Services</h3>
                               <ul className="space-y-2 text-gray-400">
