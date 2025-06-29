@@ -70,12 +70,13 @@
 ```xml
 Java 21
 Spring Boot 3.5.0
-Spring Security (Authentication & Authorization)
+Spring Security 6.x (JWT Authentication & Authorization)
 Spring Data JPA (Database Operations)
-MySQL Database
+MySQL Database 8.0+
 Maven (Dependency Management)
-JWT (JSON Web Tokens)
+JWT (JSON Web Tokens for stateless authentication)
 BCrypt (Password Encryption)
+JJWT (JWT Library for token generation and validation)
 ```
 
 ### **Frontend (React)**
@@ -86,8 +87,17 @@ Tailwind CSS (Styling & Responsive Design)
 Heroicons (Modern Icon Library)
 React Toastify (Notifications)
 Axios (HTTP Client for API calls)
-Context API (State Management)
+Context API (Global State Management)
+Custom JWT Utilities (Token management & validation)
 ```
+
+### **Authentication & Security**
+- **JWT Tokens** - Stateless authentication with automatic expiration
+- **Bearer Token Authentication** - Industry-standard token-based security
+- **Custom JWT Filter** - Spring Security filter for token validation
+- **Role-Based Access Control** - USER and ADMIN role separation
+- **Password Encryption** - BCrypt hashing with salt
+- **Token Expiration Management** - Automatic logout and session warnings
 
 ### **Key Frontend Libraries**
 - **React Router** - Client-side routing with protected routes
@@ -95,6 +105,7 @@ Context API (State Management)
 - **Heroicons** - Beautiful hand-crafted SVG icons
 - **React Toastify** - User-friendly notification system
 - **Context API** - Global state management for authentication
+- **Custom JWT Utils** - Token decoding, validation, and expiration checking
 
 ---
 
@@ -168,18 +179,14 @@ Context API (State Management)
 ├─ Contexts (Global State Management)
 │  └─ AuthContext (Authentication state, user data & session management)
 │
-├─ Services (API Communication Layer)
-│  └─ api.js (HTTP client, API endpoints & request/response handling)
+├─ Services (API Communication)
+│  └─ api (HTTP client with JWT authentication, automatic token handling)
 │
-├─ Styles & Configuration
-│  ├─ index.css (Global styles, utilities & responsive design)
-│  ├─ tailwind.config.js (Tailwind CSS configuration)
-│  └─ App.js (Main routing, layout & application structure)
+├─ Utils (Utility Functions)
+│  └─ jwtUtils (Token decoding, validation, expiration checking)
 │
-└─ Static Assets
-   ├─ index.html (Main HTML template with meta tags)
-   ├─ logo.png (Application logo for branding)
-   └─ manifest.json (PWA configuration & app metadata)
+└─ Context (Global State)
+   └─ AuthContext (JWT authentication state, session management)
 ```
 
 ---
@@ -215,27 +222,43 @@ Account (1) ←→ (Many) Transaction
 
 ## 🔒 Security Implementation
 
-### **Authentication & Authorization**
-- **JWT Tokens** - Secure token-based authentication
-- **BCrypt Hashing** - Password encryption with salt
-- **Role-Based Access** - USER and ADMIN role separation
-- **Protected Routes** - Frontend route guards
-- **CORS Configuration** - Cross-origin resource sharing setup
+### **JWT Authentication & Authorization**
+- **JWT Tokens** - Secure stateless authentication with automatic expiration
+- **Bearer Token Authentication** - Industry-standard token-based security
+- **Automatic Token Validation** - Real-time token expiration checking
+- **Session Management** - Automatic logout on token expiry with user warnings
+- **Role-Based Access Control** - USER and ADMIN role separation with protected endpoints
 
-### **Input Validation**
-- **Frontend Validation** - Real-time form validation
-- **Backend Validation** - Bean validation annotations
-- **SQL Injection Prevention** - JPA prepared statements
-- **XSS Protection** - Input sanitization
+### **Security Configuration**
+- **Spring Security Filter Chain** - Custom JWT authentication filter
+- **CORS Configuration** - Cross-origin resource sharing for React frontend
+- **BCrypt Password Hashing** - Secure password encryption with salt
+- **Protected Endpoints** - Role-based access control for API endpoints
+- **Authentication Filter** - Custom JwtAuthFilter for token validation
 
-### **Security Headers**
-- **CSRF Protection** - Cross-site request forgery prevention
+### **Input Validation & Protection**
+- **Frontend Validation** - Real-time form validation with error feedback
+- **Backend Validation** - Bean validation annotations and custom validators
+- **SQL Injection Prevention** - JPA prepared statements and parameterized queries
+- **XSS Protection** - Input sanitization and secure data handling
+
+### **Security Headers & Configuration**
+- **CSRF Protection** - Cross-site request forgery prevention (disabled for API)
 - **Secure Headers** - X-Frame-Options, X-Content-Type-Options
-- **HTTPS Ready** - SSL/TLS configuration support
+- **Token Security** - Secure JWT token storage in localStorage
+- **HTTPS Ready** - SSL/TLS configuration support for production
 
 ---
 
 ## 🎨 Frontend Features
+
+### **JWT Authentication & Security**
+- **Stateless Authentication** - JWT token-based authentication with automatic expiration
+- **Session Management** - Real-time token validation and automatic logout
+- **Session Warnings** - 5-minute expiration warnings to save user work
+- **Secure Token Storage** - JWT tokens stored securely in localStorage
+- **Automatic Token Refresh** - Token validation before each API request
+- **Role-Based Access** - Different interfaces for users and administrators
 
 ### **Responsive Design**
 - **Mobile-First Approach** - Optimized for mobile devices
@@ -249,6 +272,7 @@ Account (1) ←→ (Many) Transaction
 - **Form Validation** - Real-time validation with helpful error messages
 - **Intuitive Navigation** - Clear navigation with role-based menu items
 - **Professional UI** - Modern banking interface with consistent design patterns
+- **Toast Notifications** - Success, warning, and error notifications for all actions
 
 ### **Admin Dashboard Features**
 - **User Search** - Search by name, email, ID, or account number
@@ -386,7 +410,23 @@ public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws
 
 ### **Authentication Endpoints**
 
-#### 1. User Registration
+#### 1. JWT Authentication
+```http
+POST /authenticate
+Content-Type: application/json
+
+{
+    "username": "john.doe@example.com",
+    "password": "securePassword123"
+}
+```
+
+**Response (200 OK):**
+```
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTY4ODEyMzQ1NiwiZXhwIjoxNjg4MTI3MDU2fQ.abc123def456ghi789
+```
+
+#### 2. User Registration
 ```http
 POST /api/signup
 Content-Type: application/json
@@ -414,25 +454,20 @@ Content-Type: application/json
 }
 ```
 
-#### 2. Login (HTTP Basic Auth)
-```http
-GET /user/dashboard
-Authorization: Basic base64(email:password)
-```
-
 ### **User Management Endpoints**
+*All user endpoints require JWT Bearer token authentication*
 
 #### 3. Get User Dashboard
 ```http
 GET /user/dashboard
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 ```
-**Response:** `"This is User dashboard"`
+**Response:** User dashboard data with account information
 
 #### 4. Check Account Balance
 ```http
 GET /user/balance
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 ```
 **Response:**
 ```json
@@ -446,7 +481,7 @@ Authorization: Basic base64(email:password)
 #### 5. Update User Profile
 ```http
 PUT /user/{userId}
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
 {
@@ -458,16 +493,17 @@ Content-Type: application/json
 #### 6. Delete User Account
 ```http
 DELETE /user/{userId}
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 ```
 **Response:** `"User Deleted"`
 
 ### **Transaction Endpoints**
+*All transaction endpoints require JWT Bearer token authentication*
 
 #### 7. Deposit Money
 ```http
 POST /transactions/deposit
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
 1500.0
@@ -486,7 +522,7 @@ Content-Type: application/json
 #### 8. Withdraw Money
 ```http
 POST /transactions/withdraw
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
 500.0
@@ -495,7 +531,7 @@ Content-Type: application/json
 #### 9. Transfer Money
 ```http
 POST /transactions/transfer
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
 {
@@ -508,7 +544,7 @@ Content-Type: application/json
 #### 10. Transaction History (Paginated)
 ```http
 GET /transactions/history?page=0&size=10
-Authorization: Basic base64(email:password)
+Authorization: Bearer <jwt_token>
 ```
 **Response:**
 ```json
@@ -548,20 +584,29 @@ BankApplication/
 ├── 📄 README.md                                    # Project documentation
 ├── 📄 pom.xml                                      # Maven configuration
 ├── 📄 sequence.sql                                 # Database initialization
-├── 📄 create-admin.html                           # Admin creation utility
+├── 📄 DockerFile                                   # Docker configuration
 │
 ├── 📂 src/main/
 │   ├── 📂 java/com/BankProject/BankApplication/
 │   │   ├── 📄 BankApplication.java                # Main Spring Boot class
 │   │   │
 │   │   ├── 📂 Auth/                               # Security & Authentication
-│   │   │   └── 📄 SecurityConfig.java             # Security configuration
+│   │   │   └── 📄 SecurityConfig.java             # Security configuration & CORS
 │   │   │
 │   │   ├── 📂 Controller/                         # REST API Controllers
 │   │   │   ├── 📄 AdminController.java            # Admin operations API
+│   │   │   ├── 📄 AuthController.java             # JWT authentication endpoint
 │   │   │   ├── 📄 HomeController.java             # Public endpoints
 │   │   │   ├── 📄 TransactionController.java      # Transaction API
 │   │   │   └── 📄 UserController.java             # User operations API
+│   │   │
+│   │   ├── 📂 DTOs/                               # Data Transfer Objects
+│   │   │   ├── 📄 AuthRequest.java                # JWT authentication request
+│   │   │   ├── 📄 CustomUserInfo.java             # User info wrapper/DTO
+│   │   │   ├── 📄 ErrorResponse.java              # Error response DTO
+│   │   │   ├── 📄 TransactionResponseDTO.java     # Transaction response DTO
+│   │   │   ├── 📄 TransferSlip.java               # Transfer request DTO
+│   │   │   └── 📄 UserAccountTemplate.java        # User registration template
 │   │   │
 │   │   ├── 📂 Entity/                             # JPA Entity Models
 │   │   │   ├── 📄 Account.java                    # Account entity
@@ -579,6 +624,9 @@ BankApplication/
 │   │   │   ├── 📄 UserAlreadyExistsException.java  # User already exists exception
 │   │   │   └── 📄 UserNotFoundException.java       # User not found exception
 │   │   │
+│   │   ├── 📂 Filters/                            # Security Filters
+│   │   │   └── 📄 JwtAuthFilter.java              # JWT authentication filter
+│   │   │
 │   │   ├── 📂 Repository/                         # Data Access Layer
 │   │   │   ├── 📄 AccountRepository.java          # Account data operations
 │   │   │   ├── 📄 TransactionRepository.java      # Transaction data operations
@@ -592,15 +640,13 @@ BankApplication/
 │   │   │
 │   │   └── 📂 Utils/                              # Utility Classes
 │   │       ├── 📄 CustomUserDetails.java         # Custom user details implementation
-│   │       ├── 📄 CustomUserInfo.java             # User info wrapper/DTO
-│   │       ├── 📄 ErrorResponse.java              # Error response DTO
-│   │       ├── 📄 TransactionResponseDTO.java     # Transaction response DTO
-│   │       ├── 📄 TransferSlip.java               # Transfer request DTO
-│   │       └── 📄 UserAccountTemplate.java        # User registration template
+│   │       └── 📄 JwtUtils.java                   # JWT token utilities (generate, validate, extract)
 │   │
 │   ├── 📂 Frontend/                               # React Frontend Application
 │   │   ├── 📄 package.json                       # Node.js dependencies
+│   │   ├── 📄 .env                                # Environment variables (dev server config)
 │   │   ├── 📄 tailwind.config.js                 # Tailwind CSS configuration
+│   │   ├── 📄 postcss.config.js                  # PostCSS configuration
 │   │   │
 │   │   ├── 📂 public/                             # Static public files
 │   │   │   ├── 📄 index.html                      # Main HTML template
@@ -628,10 +674,13 @@ BankApplication/
 │   │       │   └── 📄 ProtectedRoute.js           # User authentication guard
 │   │       │
 │   │       ├── 📂 contexts/                       # React Context Providers
-│   │       │   └── 📄 AuthContext.js              # Authentication state management
+│   │       │   └── 📄 AuthContext.js              # JWT authentication state management
 │   │       │
-│   │       └── 📂 services/                       # API Services
-│   │           └── 📄 api.js                      # HTTP client & API methods
+│   │       ├── 📂 services/                       # API Services
+│   │       │   └── 📄 api.js                      # HTTP client & JWT API methods
+│   │       │
+│   │       └── 📂 utils/                          # Utility Functions
+│   │           └── 📄 jwtUtils.js                 # JWT token utilities (decode, validate, extract)
 │   │
 │   └── 📂 resources/
 │       ├── 📄 application.properties              # Spring Boot configuration
@@ -827,48 +876,35 @@ INSERT INTO user (name, email, password, role) VALUES
 7. **Response Generation** - Return user info without sensitive data
 
 ### **Authentication Flow**
-1. **HTTP Basic Auth** - Email as username, plain password
-2. **User Lookup** - Find user by email (case-insensitive)
-3. **Password Verification** - BCrypt comparison
-4. **Authority Assignment** - Role-based authorities
-5. **Security Context** - Store authenticated user
-
-### **Transaction Processing**
-1. **Authentication Check** - Verify user is logged in
-2. **Account Validation** - Verify account exists and belongs to user
-3. **Amount Validation** - Check positive amounts, sufficient balance
-4. **Balance Updates** - Atomic balance operations
-5. **Transaction Recording** - Create transaction record
-6. **Response Generation** - Return transaction details
-
-### **Transfer Logic**
-1. **Account Validation** - Both sender and receiver accounts exist
-2. **Ownership Verification** - Sender must own the source account
-3. **Balance Check** - Sufficient funds in sender account
-4. **Atomic Transaction** - Debit sender, credit receiver
-5. **Transaction Records** - Create records for both accounts
----
-
-## 🚀 Future Enhancements
-
-### **Planned Features**
-
-- 💳 **Card Management** - Virtual and physical card services
-- 📊 **Analytics Dashboard** - Advanced financial insights
-- 🔔 **Push Notifications** - Real-time transaction alerts
-- 🌐 **Multi-Language Support** - Internationalization
-- 🔐 **Two-Factor Authentication** - Enhanced security
-- 🤖 **AI Chatbot** - Customer service automation
-
-### **Technical Improvements**
-- ⚡ **Performance Optimization** - Caching and query optimization
-- 🧪 **Test Coverage** - Comprehensive test suite
-- 📦 **Microservices Architecture** - Service decomposition
-- ☁️ **Cloud Deployment** - AWS/Azure deployment
-- 🔄 **CI/CD Pipeline** - Automated testing and deployment
-- 📊 **Monitoring & Logging** - Application observability
-
----
+```
+┌─ User Login Process
+│  1. User enters email/password on LoginPage
+│  2. Frontend sends credentials to /authenticate endpoint
+│  3. Backend validates credentials using AuthenticationManager
+│  4. JwtUtils generates signed JWT token with user info
+│  5. Frontend receives token and stores in localStorage
+│  6. Frontend fetches user data using Bearer token
+│  7. AuthContext sets up periodic token validation
+│
+├─ Token Validation & Usage
+│  1. JwtAuthFilter intercepts all protected requests
+│  2. Extracts Bearer token from Authorization header
+│  3. JwtUtils validates token signature and expiration
+│  4. Sets Spring Security authentication context
+│  5. Request proceeds to controller if token valid
+│
+├─ Automatic Token Management
+│  1. Frontend checks token expiration before each request
+│  2. Warns user 5 minutes before token expires
+│  3. Automatically logs out user when token expires
+│  4. Clears localStorage and redirects to login
+│
+└─ Session Security
+   ├─ Stateless authentication (no server-side sessions)
+   ├─ Token expiration set to 1 hour for security
+   ├─ Automatic cleanup on logout or expiration
+   └─ Real-time session monitoring with user feedback
+```
 
 
 

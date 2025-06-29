@@ -18,6 +18,7 @@
  */
 
 import axios from 'axios';
+import { isTokenExpired } from '../utils/jwtUtils';
 
 // API base URL - can be configured via environment variable for different environments
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
@@ -41,14 +42,22 @@ class ApiService {
                },
           });
 
-          // Request interceptor - automatically adds auth token to requests
+          // Request interceptor - automatically adds JWT token to requests
           this.api.interceptors.request.use(
                (config) => {
-                    // Get stored authentication token from localStorage
-                    const token = localStorage.getItem('auth');
+                    // Get stored JWT token from localStorage
+                    const token = localStorage.getItem('jwtToken');
                     if (token) {
-                         // Add Authorization header to request
-                         config.headers.Authorization = `Basic ${token}`;
+                         // Check if token is expired before using it
+                         if (isTokenExpired(token)) {
+                              // Token is expired, remove it and redirect to login
+                              localStorage.removeItem('jwtToken');
+                              localStorage.removeItem('userInfo');
+                              window.location.href = '/login';
+                              return Promise.reject(new Error('Token expired'));
+                         }
+                         // Add Authorization header with Bearer token to request
+                         config.headers.Authorization = `Bearer ${token}`;
                     }
                     return config;
                },
@@ -63,7 +72,8 @@ class ApiService {
                (error) => {
                     // If authentication fails (401), redirect to login
                     if (error.response?.status === 401) {
-                         localStorage.removeItem('auth');
+                         localStorage.removeItem('jwtToken');
+                         localStorage.removeItem('userInfo');
                          window.location.href = '/login';
                     }
                     return Promise.reject(error);
@@ -72,28 +82,51 @@ class ApiService {
      }
 
      /**
-      * Sets authentication token for API requests
-      * Used for Basic Authentication with username:password encoded in Base64
+      * Sets JWT authentication token for API requests
+      * Used for Bearer token authentication
       * 
-      * @param {string} token - Base64 encoded credentials (email:password)
+      * @param {string} token - JWT token string
       */
      setAuthToken(token) {
           if (token) {
-               // Set Authorization header for all subsequent requests
-               this.api.defaults.headers.Authorization = `Basic ${token}`;
+               // Set Authorization header with Bearer token for all subsequent requests
+               this.api.defaults.headers.Authorization = `Bearer ${token}`;
+               // Store token in localStorage for persistence
+               localStorage.setItem('jwtToken', token);
           } else {
                // Remove Authorization header if no token provided
                delete this.api.defaults.headers.Authorization;
+               localStorage.removeItem('jwtToken');
           }
      }
 
      /**
-      * Clears authentication token from API requests
+      * Clears JWT authentication token from API requests
       * Used during logout or when authentication fails
       */
      clearAuthToken() {
           // Remove Authorization header from default headers
           delete this.api.defaults.headers.Authorization;
+          // Remove token from localStorage
+          localStorage.removeItem('jwtToken');
+          localStorage.removeItem('userInfo');
+     }
+
+     /**
+      * Checks if the current JWT token is valid and not expired
+      * @returns {boolean} True if token is valid, false otherwise
+      */
+     isTokenValid() {
+          const token = localStorage.getItem('jwtToken');
+          return token && !isTokenExpired(token);
+     }
+
+     /**
+      * Gets the current JWT token from localStorage
+      * @returns {string|null} The JWT token or null if not found
+      */
+     getToken() {
+          return localStorage.getItem('jwtToken');
      }
 
      // ============================================================================
@@ -149,21 +182,26 @@ class ApiService {
      // ============================================================================
 
      /**
-      * Authenticates user with email and password
+      * Authenticates user with email and password using JWT
       * @param {Object} credentials - Login credentials
       * @param {string} credentials.email - User's email address
       * @param {string} credentials.password - User's password
-      * @returns {Promise} API response with user dashboard data
+      * @returns {Promise} API response with JWT token
       */
      async login(credentials) {
-          // Create Base64 encoded token for Basic Authentication
-          const token = btoa(`${credentials.email}:${credentials.password}`);
+          // Send authentication request to get JWT token
+          const response = await this.post('/authenticate', {
+               username: credentials.email,
+               password: credentials.password
+          });
 
-          // Set the authentication token
-          this.setAuthToken(token);
+          if (response.data) {
+               // Store the JWT token
+               this.setAuthToken(response.data);
+               return response;
+          }
 
-          // Validate credentials by requesting user dashboard
-          return this.get('/user/dashboard');
+          throw new Error('Authentication failed');
      }
 
      /**

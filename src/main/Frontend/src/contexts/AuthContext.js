@@ -10,13 +10,15 @@
  * - Login functionality for both users and admins
  * - User registration
  * - Automatic authentication checking on app start
- * - Token-based authentication with localStorage
+ * - JWT token-based authentication with localStorage
  * - Role-based access control (USER vs ADMIN)
+ * - Automatic token expiration handling
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import { isTokenExpired, willTokenExpireSoon } from '../utils/jwtUtils';
 
 // Create React Context for authentication
 // This allows any component in the app to access authentication state
@@ -53,15 +55,19 @@ export const AuthProvider = ({ children }) => {
      // Loading state for authentication operations
      const [loading, setLoading] = useState(true);
 
+     // Ref to store the token check interval
+     const tokenCheckInterval = useRef(null);
+
      /**
       * Effect hook to check authentication status when app starts
       * Runs once when the component mounts
-      * Checks for existing auth token in localStorage and validates it
+      * Checks for existing JWT token in localStorage and validates it
       */
      useEffect(() => {
           const checkAuth = async () => {
-               // Get stored authentication token from browser storage
-               const token = localStorage.getItem('auth');
+               // Get stored JWT token from browser storage
+               const token = localStorage.getItem('jwtToken');
+               const userInfo = localStorage.getItem('userInfo');
 
                if (token) {
                     try {
@@ -76,10 +82,15 @@ export const AuthProvider = ({ children }) => {
                               // Token is valid, user is authenticated
                               setIsAuthenticated(true);
                               setUser(response.data);
+                              // Update stored user info
+                              localStorage.setItem('userInfo', JSON.stringify(response.data));
+                              // Set up token validation
+                              setupTokenValidation();
                          }
                     } catch (error) {
                          // Token is invalid or expired, clean up
-                         localStorage.removeItem('auth');
+                         localStorage.removeItem('jwtToken');
+                         localStorage.removeItem('userInfo');
                          api.clearAuthToken();
                     }
                }
@@ -89,6 +100,11 @@ export const AuthProvider = ({ children }) => {
           };
 
           checkAuth();
+
+          // Cleanup function to clear interval on unmount
+          return () => {
+               clearTokenValidation();
+          };
      }, []);
 
      /**
@@ -109,7 +125,7 @@ export const AuthProvider = ({ children }) => {
 
      /**
       * Handles user login authentication
-      * Supports both regular users and administrators
+      * Supports both regular users and administrators using JWT
       * 
       * @param {string} email - User's email address
       * @param {string} password - User's password
@@ -119,32 +135,34 @@ export const AuthProvider = ({ children }) => {
           try {
                setLoading(true);
 
-               // Create Base64 encoded credentials for Basic Authentication
-               // Format: "email:password" encoded in Base64
-               const credentials = btoa(`${email}:${password}`);
+               // Send authentication request to get JWT token
+               const authResponse = await api.login({ email, password });
 
-               // Set authentication token for API requests
-               api.setAuthToken(credentials);
+               if (authResponse.status === 200) {
+                    // JWT token received and stored, now get user data
+                    const userResponse = await api.get('/user/dashboard');
 
-               // Attempt to get user dashboard data
-               // This validates credentials and returns user information
-               const response = await api.get('/user/dashboard');
+                    if (userResponse.status === 200) {
+                         // Login successful - update state
+                         setIsAuthenticated(true);
+                         setUser(userResponse.data);
 
-               if (response.status === 200) {
-                    // Login successful - store credentials and update state
-                    localStorage.setItem('auth', credentials);
-                    setIsAuthenticated(true);
-                    setUser(response.data);
+                         // Store user info for offline access
+                         localStorage.setItem('userInfo', JSON.stringify(userResponse.data));
 
-                    // Show success message to user
-                    toast.success('Login successful!');
+                         // Set up token validation
+                         setupTokenValidation();
 
-                    // Return success result with user data and admin flag
-                    return {
-                         success: true,
-                         user: response.data,
-                         isAdmin: response.data.role === 'ADMIN'
-                    };
+                         // Show success message to user
+                         toast.success('Login successful!');
+
+                         // Return success result with user data and admin flag
+                         return {
+                              success: true,
+                              user: userResponse.data,
+                              isAdmin: userResponse.data.role === 'ADMIN'
+                         };
+                    }
                }
           } catch (error) {
                // Login failed - clean up and show error
@@ -198,11 +216,15 @@ export const AuthProvider = ({ children }) => {
 
      /**
       * Logs out the current user
-      * Clears authentication token and resets user state
+      * Clears JWT token and resets user state
       */
      const logout = () => {
-          // Remove stored authentication token
-          localStorage.removeItem('auth');
+          // Clear token validation interval
+          clearTokenValidation();
+
+          // Remove stored JWT token and user info
+          localStorage.removeItem('jwtToken');
+          localStorage.removeItem('userInfo');
 
           // Clear API authentication
           api.clearAuthToken();
@@ -213,6 +235,46 @@ export const AuthProvider = ({ children }) => {
 
           // Show logout confirmation
           toast.info('Logged out successfully');
+     };
+
+     /**
+      * Sets up periodic token validation
+      * Checks every minute if the token is about to expire
+      */
+     const setupTokenValidation = () => {
+          // Clear any existing interval
+          if (tokenCheckInterval.current) {
+               clearInterval(tokenCheckInterval.current);
+          }
+
+          // Set up new interval to check token every minute
+          tokenCheckInterval.current = setInterval(() => {
+               const token = localStorage.getItem('jwtToken');
+
+               if (token) {
+                    // Check if token is expired
+                    if (isTokenExpired(token)) {
+                         toast.error('Your session has expired. Please login again.');
+                         logout();
+                         return;
+                    }
+
+                    // Check if token will expire soon (within 5 minutes)
+                    if (willTokenExpireSoon(token, 5)) {
+                         toast.warning('Your session will expire soon. Please save your work.');
+                    }
+               }
+          }, 60000); // Check every minute
+     };
+
+     /**
+      * Clears the token validation interval
+      */
+     const clearTokenValidation = () => {
+          if (tokenCheckInterval.current) {
+               clearInterval(tokenCheckInterval.current);
+               tokenCheckInterval.current = null;
+          }
      };
 
      // Context value that will be provided to all child components
