@@ -3,26 +3,30 @@ package com.BankProject.BankApplication.Auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.BankProject.BankApplication.Service.CustomUserDetailsService;
-
+import com.BankProject.BankApplication.Filters.JwtAuthFilter;
 import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+     // @Autowired
+     // private CustomUserDetailsService userDetailsService;
+
      @Autowired
-     private CustomUserDetailsService userDetailsService;
+     private JwtAuthFilter JwtAuthFilter;
 
      // This is the security filter chain used to authenticate the user .
      @Bean
@@ -30,14 +34,14 @@ public class SecurityConfig {
           return httpSecurity
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf.disable())
-                    .httpBasic(httpBasic -> {
-                    })
                     .authorizeHttpRequests(http -> {
-                         http.requestMatchers("/login", "/api/**", "/actuator/**").permitAll()
+                         http.requestMatchers("/login", "/api/**", "/actuator/**", "/authenticate").permitAll()
                                    .requestMatchers("/admin/**").hasRole("ADMIN")
                                    .requestMatchers("/user/**", "/transactions/**").hasAnyRole("USER", "ADMIN")
                                    .anyRequest().authenticated();
                     })
+                    .addFilterBefore(JwtAuthFilter,
+                              UsernamePasswordAuthenticationFilter.class)
                     .logout(logout -> {
                          logout.logoutUrl("/logout");
                          // .logoutSuccessUrl("/login");
@@ -67,10 +71,15 @@ public class SecurityConfig {
      }
 
      @Bean
-     public DaoAuthenticationProvider daoAuthenticationProvider() {
-          DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-          authProvider.setUserDetailsService(userDetailsService);
-          authProvider.setPasswordEncoder(passwordEncoder());
-          return authProvider;
+     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+          return configuration.getAuthenticationManager();
      }
+
+     // @Bean
+     // public DaoAuthenticationProvider daoAuthenticationProvider() {
+     // DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+     // authProvider.setUserDetailsService(userDetailsService);
+     // authProvider.setPasswordEncoder(passwordEncoder());
+     // return authProvider;
+     // }
 }

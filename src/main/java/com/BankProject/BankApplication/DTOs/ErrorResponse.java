@@ -1,4 +1,4 @@
-package com.BankProject.BankApplication.Utils; // Or a dedicated 'error' package
+package com.BankProject.BankApplication.DTOs; // Or a dedicated 'error' package
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

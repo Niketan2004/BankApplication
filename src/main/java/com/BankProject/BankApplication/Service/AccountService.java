@@ -5,10 +5,10 @@ import javax.security.auth.login.AccountNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.BankProject.BankApplication.DTOs.UserAccountTemplate;
 import com.BankProject.BankApplication.Entity.Account;
 import com.BankProject.BankApplication.Entity.User;
 import com.BankProject.BankApplication.Repository.AccountRepository;
-import com.BankProject.BankApplication.Utils.UserAccountTemplate;
 
 @Service
 public class AccountService {

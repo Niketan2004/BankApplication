@@ -16,13 +16,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.BankProject.BankApplication.DTOs.CustomUserInfo;
+import com.BankProject.BankApplication.DTOs.UserAccountTemplate;
 import com.BankProject.BankApplication.Entity.User;
 import com.BankProject.BankApplication.Enum.Role;
 import com.BankProject.BankApplication.Exceptions.UserAlreadyExistsException;
 import com.BankProject.BankApplication.Exceptions.UserNotFoundException;
 import com.BankProject.BankApplication.Repository.UserRepository;
-import com.BankProject.BankApplication.Utils.CustomUserInfo;
-import com.BankProject.BankApplication.Utils.UserAccountTemplate;
 
 @Service
 public class UserService {

@@ -14,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.BankProject.BankApplication.DTOs.TransactionResponseDTO;
+import com.BankProject.BankApplication.DTOs.TransferSlip;
 import com.BankProject.BankApplication.Entity.Account;
 import com.BankProject.BankApplication.Entity.Transactions;
 import com.BankProject.BankApplication.Entity.User;
@@ -23,8 +25,6 @@ import com.BankProject.BankApplication.Exceptions.UserNotFoundException;
 import com.BankProject.BankApplication.Repository.AccountRepository;
 import com.BankProject.BankApplication.Repository.TransactionRepository;
 import com.BankProject.BankApplication.Repository.UserRepository;
-import com.BankProject.BankApplication.Utils.TransactionResponseDTO;
-import com.BankProject.BankApplication.Utils.TransferSlip;
 
 @Service
 public class TransactionService {

@@ -1,4 +1,4 @@
-package com.BankProject.BankApplication.Utils;
+package com.BankProject.BankApplication.DTOs;
 
 
 

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest; // Import WebRequest
 
-import com.BankProject.BankApplication.Utils.ErrorResponse;
+import com.BankProject.BankApplication.DTOs.ErrorResponse;
 
 import java.util.HashMap;
 import java.util.Map;

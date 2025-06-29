@@ -12,9 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.BankProject.BankApplication.DTOs.TransactionResponseDTO;
+import com.BankProject.BankApplication.DTOs.TransferSlip;
 import com.BankProject.BankApplication.Service.TransactionService;
-import com.BankProject.BankApplication.Utils.TransactionResponseDTO;
-import com.BankProject.BankApplication.Utils.TransferSlip;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

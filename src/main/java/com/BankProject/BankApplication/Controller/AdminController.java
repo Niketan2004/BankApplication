@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.BankProject.BankApplication.DTOs.CustomUserInfo;
+import com.BankProject.BankApplication.DTOs.UserAccountTemplate;
 import com.BankProject.BankApplication.Service.UserService;
-import com.BankProject.BankApplication.Utils.CustomUserInfo;
-import com.BankProject.BankApplication.Utils.UserAccountTemplate;
 
 @RestController
 @RequestMapping("/admin")
