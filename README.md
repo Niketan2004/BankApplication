@@ -113,80 +113,116 @@ Custom JWT Utilities (Token management & validation)
 
 ### **Backend Architecture**
 ```
-┌─ Controller Layer (REST APIs)
-│  ├─ AdminController (Admin user management operations)
-│  ├─ HomeController (Public endpoints & authentication)
-│  ├─ TransactionController (Banking transaction operations)
-│  └─ UserController (User profile & account operations)
-│
-├─ Service Layer (Business Logic)
-│  ├─ AccountService (Account management logic)
-│  ├─ CustomUserDetailsService (Spring Security integration)
-│  ├─ TransactionService (Transaction processing logic)
-│  └─ UserService (User management & authentication logic)
-│
-├─ Repository Layer (Data Access)
-│  ├─ AccountRepository (Account data operations)
-│  ├─ TransactionRepository (Transaction data operations)
-│  └─ UserRepository (User data operations)
-│
-├─ Entity Layer (Data Models)
-│  ├─ Account (Bank account details & balance)
-│  ├─ Transactions (Transaction records & history)
-│  └─ User (User information & authentication)
+┌─ Controller Layer (REST API Endpoints)
+│  ├─ AuthController (/authenticate - JWT token generation)
+│  ├─ AdminController (/admin/** - Admin user management operations)
+│  ├─ HomeController (/ - Public endpoints & health checks)
+│  ├─ TransactionController (/transactions/** - Banking operations)
+│  └─ UserController (/user/** - User profile & account operations)
 │
 ├─ Security Layer (Authentication & Authorization)
-│  └─ SecurityConfig (Spring Security configuration)
+│  ├─ SecurityConfig (Spring Security configuration & CORS)
+│  ├─ JwtAuthFilter (JWT token validation filter)
+│  └─ CustomUserDetailsService (User authentication service)
 │
-├─ Exception Layer (Error Handling)
+├─ Service Layer (Business Logic & Processing)
+│  ├─ AccountService (Account management & balance operations)
+│  ├─ TransactionService (Transaction processing & validation)
+│  ├─ UserService (User management & profile operations)
+│  └─ CustomUserDetailsService (Spring Security user loading)
+│
+├─ Repository Layer (Data Access & Persistence)
+│  ├─ AccountRepository (Account CRUD operations with JPA)
+│  ├─ TransactionRepository (Transaction data with pagination)
+│  └─ UserRepository (User data with custom queries)
+│
+├─ Entity Layer (JPA Data Models)
+│  ├─ User (User information, roles, authentication)
+│  ├─ Account (Bank account details, balance, account type)
+│  └─ Transactions (Transaction records, history, relationships)
+│
+├─ DTOs Layer (Data Transfer Objects)
+│  ├─ AuthRequest (JWT authentication request)
+│  ├─ CustomUserInfo (User information response)
+│  ├─ ErrorResponse (Standardized error responses)
+│  ├─ TransactionResponseDTO (Transaction response data)
+│  ├─ TransferSlip (Money transfer request)
+│  └─ UserAccountTemplate (User registration template)
+│
+├─ Utils Layer (Utilities & Helper Classes)
+│  ├─ JwtUtils (JWT token generation, validation, extraction)
+│  └─ CustomUserDetails (Spring Security user details implementation)
+│
+├─ Exception Layer (Error Handling & Management)
 │  ├─ GlobalExceptionHandler (Centralized exception handling)
 │  ├─ InsufficientAmountException (Insufficient balance errors)
-│  ├─ UserAlreadyExistsException (Duplicate user errors)
-│  └─ UserNotFoundException (User not found errors)
+│  ├─ UserAlreadyExistsException (Duplicate user registration)
+│  └─ UserNotFoundException (User lookup failures)
 │
-├─ Enum Layer (Type-safe Constants)
-│  ├─ AccountType (SAVINGS/CURRENT account types)
-│  ├─ Role (USER/ADMIN user roles)
-│  └─ TransactionTypes (Transaction type definitions)
-│
-└─ Utils Layer (Data Transfer & Utilities)
-   ├─ CustomUserDetails (Custom user details implementation)
-   ├─ CustomUserInfo (User info wrapper/DTO)
-   ├─ ErrorResponse (Standardized error response DTO)
-   ├─ TransactionResponseDTO (Transaction response DTO)
-   ├─ TransferSlip (Money transfer request DTO)
-   └─ UserAccountTemplate (User registration template DTO)
+└─ Enum Layer (Type-safe Constants & Definitions)
+   ├─ Role (USER/ADMIN user roles with authorities)
+   ├─ AccountType (SAVINGS/CURRENT account classifications)
+   └─ TransactionTypes (DEPOSIT/WITHDRAW/TRANSFER types)
 ```
 
 ### **Frontend Architecture**
 ```
-┌─ Pages (Main Application Views)
-│  ├─ AdminDashboard (Admin user management interface with dark theme)
-│  ├─ Dashboard (User main dashboard with banking operations)
-│  ├─ LandingPage (Home/marketing page with features showcase)
-│  ├─ LoginPage (User authentication with role-based redirects)
-│  ├─ Profile (User profile management & account details)
-│  ├─ RegisterPage (User registration with account creation)
-│  └─ TransactionHistory (Paginated transaction records view)
+┌─ Pages Layer (Application Views & User Interfaces)
+│  ├─ LandingPage (/) - Public homepage with features & marketing
+│  ├─ LoginPage (/login) - JWT authentication with role-based routing
+│  ├─ RegisterPage (/register) - User registration with account creation
+│  ├─ Dashboard (/dashboard) - User main interface with banking operations
+│  ├─ TransactionHistory (/transactions) - Paginated transaction records
+│  ├─ Profile (/profile) - User profile management & account details
+│  └─ AdminDashboard (/admin) - Admin user management with dark theme
 │
-├─ Components (Reusable UI Components)
+├─ Components Layer (Reusable UI Components)
 │  └─ common/
-│     ├─ AdminRoute (Admin-only access guard with role verification)
-│     ├─ Footer (Page footer with branding & social links)
-│     ├─ Navbar (Navigation bar with logo & role-based menu)
-│     └─ ProtectedRoute (User authentication guard with redirects)
+│     ├─ Navbar - Navigation with logo, role-based menu, logout
+│     ├─ Footer - Branding, links, contact information
+│     ├─ ProtectedRoute - Authentication guard for user routes
+│     └─ AdminRoute - Role-based guard for admin-only access
 │
-├─ Contexts (Global State Management)
-│  └─ AuthContext (Authentication state, user data & session management)
+├─ Context Layer (Global State Management)
+│  └─ AuthContext - JWT authentication state management
+│     ├─ User state (profile, role, account info)
+│     ├─ Authentication status (isAuthenticated, loading)
+│     ├─ Token management (automatic validation, expiration)
+│     ├─ Login/logout functions with JWT handling
+│     └─ Session monitoring (warnings, automatic cleanup)
 │
-├─ Services (API Communication)
-│  └─ api (HTTP client with JWT authentication, automatic token handling)
+├─ Services Layer (API Communication & Data Management)
+│  └─ api.js - HTTP client with comprehensive API methods
+│     ├─ JWT Authentication (Bearer token handling)
+│     ├─ Request/Response interceptors (automatic token attachment)
+│     ├─ User operations (registration, profile, dashboard)
+│     ├─ Transaction operations (deposit, withdraw, transfer, history)
+│     ├─ Admin operations (user management, CRUD operations)
+│     └─ Error handling (401 redirects, token cleanup)
 │
-├─ Utils (Utility Functions)
-│  └─ jwtUtils (Token decoding, validation, expiration checking)
+├─ Utils Layer (Utility Functions & Helpers)
+│  └─ jwtUtils.js - JWT token management utilities
+│     ├─ decodeJWT() - Extract payload from JWT tokens
+│     ├─ isTokenExpired() - Check token expiration status
+│     ├─ getUsernameFromToken() - Extract username from token
+│     ├─ getTokenExpiration() - Get token expiration date
+│     ├─ getTimeUntilExpiration() - Calculate remaining time
+│     └─ willTokenExpireSoon() - Check if token expires soon
 │
-└─ Context (Global State)
-   └─ AuthContext (JWT authentication state, session management)
+├─ Routing Layer (Navigation & Access Control)
+│  └─ App.js - Main router configuration
+│     ├─ Public routes (/, /login, /register)
+│     ├─ Protected routes (user authentication required)
+│     ├─ Admin routes (admin role required)
+│     ├─ Route guards (ProtectedRoute, AdminRoute)
+│     └─ Fallback routing (404 redirects)
+│
+└─ Styling Layer (UI/UX & Design System)
+   ├─ Tailwind CSS - Utility-first responsive design
+   ├─ Custom CSS - Global styles and overrides
+   ├─ Heroicons - Consistent icon library
+   ├─ React Toastify - User feedback notifications
+   └─ Mobile-first design - Responsive across all devices
 ```
 
 ---
@@ -373,25 +409,24 @@ Account (1) ←→ (Many) Transaction
 
 ### **Authentication & Authorization**
 ```java
-@Configuration
-@EnableWebSecurity
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
- return httpSecurity
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .httpBasic(httpBasic -> {
+   @Bean
+     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+          return httpSecurity
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .csrf(csrf -> csrf.disable())
+                    .authorizeHttpRequests(http -> {
+                         http.requestMatchers("/login", "/api/**", "/actuator/**", "/authenticate").permitAll()
+                                   .requestMatchers("/admin/**").hasRole("ADMIN")
+                                   .requestMatchers("/user/**", "/transactions/**").hasAnyRole("USER", "ADMIN")
+                                   .anyRequest().authenticated();
                     })
-                .authorizeHttpRequests(http -> {
-                        http.requestMatchers("/login", "/api/**", "/actuator/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**", "/transactions/**").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated();
-                })
-                .logout(logout -> {
-                         logout.logoutUrl("/logout");                         
-                })
-                .build();
+                    .addFilterBefore(JwtAuthFilter,
+                              UsernamePasswordAuthenticationFilter.class)
+                    .logout(logout -> {
+                         logout.logoutUrl("/logout");
+                         // .logoutSuccessUrl("/login");
+                    })
+                    .build();
      }
 ```
 
@@ -904,6 +939,38 @@ INSERT INTO user (name, email, password, role) VALUES
    ├─ Token expiration set to 1 hour for security
    ├─ Automatic cleanup on logout or expiration
    └─ Real-time session monitoring with user feedback
+```
+
+### **Frontend-Backend Integration Flow**
+```
+┌─ Authentication Flow
+│  1. User Login → POST /authenticate → JWT Token
+│  2. Token Storage → localStorage → Automatic API Headers
+│  3. Token Validation → JwtAuthFilter → Spring Security Context
+│  4. API Access → Protected Endpoints → Business Logic
+│
+├─ Data Flow Pattern
+│  1. UI Action → React Event Handler
+│  2. Context Method → API Service Call
+│  3. HTTP Request → Spring Boot Controller
+│  4. Service Layer → Repository Layer
+│  5. Database Operation → Response Chain
+│  6. JSON Response → Frontend State Update
+│  7. UI Re-render → User Feedback
+│
+├─ Error Handling Flow
+│  1. Backend Exception → GlobalExceptionHandler
+│  2. Standardized Error Response → HTTP Status Codes
+│  3. Frontend Interceptor → Error Processing
+│  4. Toast Notification → User-Friendly Messages
+│  5. State Cleanup → Redirect (if needed)
+│
+└─ Security Flow
+   1. JWT Token → Every Request Header
+   2. Filter Validation → Token Expiration Check
+   3. Spring Security → Role-Based Access
+   4. Frontend Guards → Route Protection
+   5. Automatic Logout → Token Cleanup
 ```
 
 
