@@ -6,8 +6,6 @@
 HELP.md
 README_COMPREHENSIVE.md
 README_UPDATED.md
-
-
 # =============================================================================
 # SPRING BOOT / JAVA
 # =============================================================================
@@ -42,7 +40,6 @@ build/
 /target/** 
 
 # Application Properties (sensitive configurations)
-src/main/resources/application-prod.properties
 src/main/resources/application-dev.properties
 application-*.yml
 application-*.yaml
