@@ -1,8 +1,8 @@
 {
      "info": {
           "name": "SecureBank API Collection",
-          "description": "Comprehensive API collection for SecureBank - A Spring Boot Banking Application with JWT Authentication",
-          "version": "1.0.0",
+          "description": "Comprehensive API collection for SecureBank - A Spring Boot Banking Application with JWT Authentication and Email Verification System",
+          "version": "2.0.0",
           "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
      },
      "auth": {
@@ -35,6 +35,21 @@
                "key": "account_number",
                "value": "",
                "type": "string"
+          },
+          {
+               "key": "verification_token",
+               "value": "",
+               "type": "string"
+          },
+          {
+               "key": "test_user_id",
+               "value": "",
+               "type": "string"
+          },
+          {
+               "key": "test_account_number",
+               "value": "",
+               "type": "string"
           }
      ],
      "item": [
@@ -59,6 +74,9 @@
                               }
                          ],
                          "request": {
+                              "auth": {
+                                   "type": "noauth"
+                              },
                               "method": "POST",
                               "header": [
                                    {
@@ -108,6 +126,9 @@
                               }
                          ],
                          "request": {
+                              "auth": {
+                                   "type": "noauth"
+                              },
                               "method": "POST",
                               "header": [
                                    {
@@ -129,12 +150,43 @@
                                         "signup"
                                    ]
                               },
-                              "description": "Register a new user with account creation"
+                              "description": "Register a new user with account creation. Email verification required before account activation."
+                         }
+                    },
+                    {
+                         "name": "Email Verification",
+                         "request": {
+                              "auth": {
+                                   "type": "noauth"
+                              },
+                              "method": "GET",
+                              "header": [],
+                              "url": {
+                                   "raw": "{{base_url}}/user/verify?token={{verification_token}}",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "user",
+                                        "verify"
+                                   ],
+                                   "query": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{verification_token}}",
+                                             "description": "Verification token from email"
+                                        }
+                                   ]
+                              },
+                              "description": "Verify user email with token from verification email. Token expires in 12 hours."
                          }
                     },
                     {
                          "name": "Public Dashboard",
                          "request": {
+                              "auth": {
+                                   "type": "noauth"
+                              },
                               "method": "GET",
                               "url": {
                                    "raw": "{{base_url}}/api/dashboard",
@@ -611,6 +663,9 @@
                               {
                                    "name": "1. Register New User",
                                    "request": {
+                                        "auth": {
+                                             "type": "noauth"
+                                        },
                                         "method": "POST",
                                         "header": [
                                              {
@@ -651,6 +706,9 @@
                                         }
                                    ],
                                    "request": {
+                                        "auth": {
+                                             "type": "noauth"
+                                        },
                                         "method": "POST",
                                         "header": [
                                              {
@@ -769,6 +827,214 @@
                                                   }
                                              ]
                                         }
+                                   }
+                              }
+                         ]
+                    },
+                    {
+                         "name": "Email Verification Workflow Test",
+                         "item": [
+                              {
+                                   "name": "1. Register User with Email Verification",
+                                   "event": [
+                                        {
+                                             "listen": "test",
+                                             "script": {
+                                                  "exec": [
+                                                       "if (pm.response.code === 200) {",
+                                                       "    var response = pm.response.json();",
+                                                       "    pm.collectionVariables.set('test_user_id', response.data.userId);",
+                                                       "    pm.collectionVariables.set('test_account_number', response.data.accountNumber);",
+                                                       "    console.log('User registered with ID:', response.data.userId);",
+                                                       "    console.log('Account Number:', response.data.accountNumber);",
+                                                       "    console.log('Check email for verification token');",
+                                                       "}"
+                                                  ],
+                                                  "type": "text/javascript"
+                                             }
+                                        }
+                                   ],
+                                   "request": {
+                                        "auth": {
+                                             "type": "noauth"
+                                        },
+                                        "method": "POST",
+                                        "header": [
+                                             {
+                                                  "key": "Content-Type",
+                                                  "value": "application/json"
+                                             }
+                                        ],
+                                        "body": {
+                                             "mode": "raw",
+                                             "raw": "{\n  \"fullName\": \"Email Test User\",\n  \"email\": \"test.email@example.com\",\n  \"password\": \"testpass123\",\n  \"role\": \"USER\",\n  \"balance\": 2500.0,\n  \"accountType\": \"SAVINGS\"\n}"
+                                        },
+                                        "url": {
+                                             "raw": "{{base_url}}/api/signup",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "api",
+                                                  "signup"
+                                             ]
+                                        },
+                                        "description": "Register user and trigger email verification"
+                                   }
+                              },
+                              {
+                                   "name": "2. Verify Email Token (Success Case)",
+                                   "event": [
+                                        {
+                                             "listen": "test",
+                                             "script": {
+                                                  "exec": [
+                                                       "if (pm.response.code === 200) {",
+                                                       "    console.log('Email verification successful');",
+                                                       "    console.log('Response:', pm.response.text());",
+                                                       "}"
+                                                  ],
+                                                  "type": "text/javascript"
+                                             }
+                                        }
+                                   ],
+                                   "request": {
+                                        "auth": {
+                                             "type": "noauth"
+                                        },
+                                        "method": "GET",
+                                        "header": [],
+                                        "url": {
+                                             "raw": "{{base_url}}/user/verify?token={{verification_token}}",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "user",
+                                                  "verify"
+                                             ],
+                                             "query": [
+                                                  {
+                                                       "key": "token",
+                                                       "value": "{{verification_token}}",
+                                                       "description": "Replace with actual token from email"
+                                                  }
+                                             ]
+                                        },
+                                        "description": "Verify email with token from email. Replace {{verification_token}} with actual token."
+                                   }
+                              },
+                              {
+                                   "name": "3. Test Invalid Token",
+                                   "event": [
+                                        {
+                                             "listen": "test",
+                                             "script": {
+                                                  "exec": [
+                                                       "if (pm.response.code === 400) {",
+                                                       "    console.log('Invalid token properly rejected');",
+                                                       "    console.log('Error message:', pm.response.text());",
+                                                       "}"
+                                                  ],
+                                                  "type": "text/javascript"
+                                             }
+                                        }
+                                   ],
+                                   "request": {
+                                        "auth": {
+                                             "type": "noauth"
+                                        },
+                                        "method": "GET",
+                                        "header": [],
+                                        "url": {
+                                             "raw": "{{base_url}}/user/verify?token=invalid-token-test",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "user",
+                                                  "verify"
+                                             ],
+                                             "query": [
+                                                  {
+                                                       "key": "token",
+                                                       "value": "invalid-token-test",
+                                                       "description": "Invalid token for testing"
+                                                  }
+                                             ]
+                                        },
+                                        "description": "Test email verification with invalid token (should return 400)"
+                                   }
+                              },
+                              {
+                                   "name": "4. Login with Verified Account",
+                                   "event": [
+                                        {
+                                             "listen": "test",
+                                             "script": {
+                                                  "exec": [
+                                                       "if (pm.response.code === 200) {",
+                                                       "    var token = pm.response.text();",
+                                                       "    pm.collectionVariables.set('jwt_token', token);",
+                                                       "    console.log('Login successful with verified account');",
+                                                       "}"
+                                                  ],
+                                                  "type": "text/javascript"
+                                             }
+                                        }
+                                   ],
+                                   "request": {
+                                        "auth": {
+                                             "type": "noauth"
+                                        },
+                                        "method": "POST",
+                                        "header": [
+                                             {
+                                                  "key": "Content-Type",
+                                                  "value": "application/json"
+                                             }
+                                        ],
+                                        "body": {
+                                             "mode": "raw",
+                                             "raw": "{\n  \"username\": \"test.email@example.com\",\n  \"password\": \"testpass123\"\n}"
+                                        },
+                                        "url": {
+                                             "raw": "{{base_url}}/authenticate",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "authenticate"
+                                             ]
+                                        },
+                                        "description": "Login with verified email account"
+                                   }
+                              },
+                              {
+                                   "name": "5. Access Protected Endpoint",
+                                   "request": {
+                                        "auth": {
+                                             "type": "bearer",
+                                             "bearer": [
+                                                  {
+                                                       "key": "token",
+                                                       "value": "{{jwt_token}}",
+                                                       "type": "string"
+                                                  }
+                                             ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                             "raw": "{{base_url}}/user/dashboard",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "user",
+                                                  "dashboard"
+                                             ]
+                                        },
+                                        "description": "Test access to protected endpoint with verified account"
                                    }
                               }
                          ]

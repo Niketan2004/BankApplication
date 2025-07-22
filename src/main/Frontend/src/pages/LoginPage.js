@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { EyeIcon, EyeSlashIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
      const [formData, setFormData] = useState({
@@ -13,6 +14,20 @@ const LoginPage = () => {
 
      const { login, loading } = useAuth();
      const navigate = useNavigate();
+     const location = useLocation();
+
+     // Show registration success message if redirected from registration
+     useEffect(() => {
+          if (location.state?.message) {
+               toast.info(location.state.message, {
+                    autoClose: 8000,
+                    position: "top-center"
+               });
+               if (location.state?.email) {
+                    setFormData(prev => ({ ...prev, email: location.state.email }));
+               }
+          }
+     }, [location.state]);
 
      const handleChange = (e) => {
           const { name, value } = e.target;

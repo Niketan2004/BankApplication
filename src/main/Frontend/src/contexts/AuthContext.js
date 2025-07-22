@@ -168,13 +168,19 @@ export const AuthProvider = ({ children }) => {
                // Login failed - clean up and show error
                api.clearAuthToken();
 
-               // Determine appropriate error message based on status code
-               const errorMessage = error.response?.status === 401
-                    ? 'Invalid email or password'
-                    : 'Login failed. Please try again.';
+               // Check for specific error messages
+               const errorMessage = error.response?.data?.message || error.response?.data;
 
-               toast.error(errorMessage);
-               return { success: false, error: errorMessage };
+               if (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('not verified')) {
+                    toast.error('Please verify your email before logging in. Check your inbox for the verification link.');
+                    return { success: false, error: 'Email not verified' };
+               } else if (error.response?.status === 401) {
+                    toast.error('Invalid email or password');
+                    return { success: false, error: 'Invalid credentials' };
+               } else {
+                    toast.error('Login failed. Please try again.');
+                    return { success: false, error: 'Login failed' };
+               }
           } finally {
                setLoading(false);
           }
@@ -201,7 +207,7 @@ export const AuthProvider = ({ children }) => {
 
                if (response.status === 201) {
                     // Registration successful
-                    toast.success('Registration successful! Please login.');
+                    toast.success('Registration successful! Please check your email to verify your account before logging in.');
                     return { success: true, data: response.data };
                }
           } catch (error) {

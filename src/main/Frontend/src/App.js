@@ -33,6 +33,7 @@ import Dashboard from './pages/Dashboard';
 import TransactionHistory from './pages/TransactionHistory';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import EmailVerificationPage from './pages/EmailVerificationPage';
 
 function App() {
      return (
@@ -51,6 +52,7 @@ function App() {
                                    <Route path="/" element={<LandingPage />} />
                                    <Route path="/login" element={<LoginPage />} />
                                    <Route path="/register" element={<RegisterPage />} />
+                                   <Route path="/verify-email" element={<EmailVerificationPage />} />
 
                                    {/* Protected routes - require user authentication */}
                                    <Route

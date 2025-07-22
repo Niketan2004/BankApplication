@@ -92,7 +92,15 @@ const RegisterPage = () => {
           const result = await register(registerData);
 
           if (result.success) {
-               navigate('/login');
+               // Show success message and redirect to login
+               setTimeout(() => {
+                    navigate('/login', {
+                         state: {
+                              message: 'Registration successful! Please check your email and verify your account before logging in.',
+                              email: formData.email
+                         }
+                    });
+               }, 2000); // Give time for the toast to be seen
           }
      };
 
@@ -114,8 +122,12 @@ const RegisterPage = () => {
                                         <p className="text-sm text-banking-100">No monthly fees or hidden charges</p>
                                    </div>
                                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                                        <h4 className="font-semibold mb-2">Email Verification</h4>
+                                        <p className="text-sm text-banking-100">Secure account activation via email</p>
+                                   </div>
+                                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                                         <h4 className="font-semibold mb-2">Instant Setup</h4>
-                                        <p className="text-sm text-banking-100">Your account is ready in minutes</p>
+                                        <p className="text-sm text-banking-100">Your account is ready after verification</p>
                                    </div>
                                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                                         <h4 className="font-semibold mb-2">Full Features</h4>

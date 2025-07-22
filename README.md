@@ -34,12 +34,14 @@
 ## ✨ Features
 
 ### 👤 **User Features**
-- 🔐 **Secure Registration & Login** - Account creation with automatic bank account assignment
-- 💰 **Balance Management** - View account balance with privacy toggle option
+- 🔐 **Secure Registration & Login** - Account creation with automatic bank account assignment and email verification
+- � **Email Verification** - Automated email verification system with 12-hour token expiration
+- ✅ **Account Activation** - Users must verify email before accessing banking features
+- �💰 **Balance Management** - View account balance with privacy toggle option
 - 💸 **Money Transfer** - Send money to other accounts with real-time validation
 - 🏧 **Deposit & Withdraw** - Add or remove money from account with instant updates
 - 📊 **Transaction History** - Detailed transaction records with search and pagination
-- � **Profile Management** - Update personal information and view account details
+- 👤 **Profile Management** - Update personal information and view account details
 - 📱 **Mobile Responsive** - Perfect experience on mobile, tablet, and desktop
 
 ### 👨‍💼 **Admin Features**
@@ -54,7 +56,9 @@
 
 ### 🔧 **Technical Features**
 - 🛡️ **JWT Authentication** - Secure token-based authentication system
-- 🔄 **Real-Time Updates** - Instant balance and data synchronization
+- � **Async Email Service** - Non-blocking email verification with HTML templates
+- ✅ **Account Verification** - Email-based account activation with secure tokens
+- �🔄 **Real-Time Updates** - Instant balance and data synchronization
 - 📱 **Responsive Design** - Mobile-first approach with Tailwind CSS
 - 🚨 **Error Handling** - Comprehensive error management with user-friendly messages
 - 🔒 **Data Validation** - Frontend and backend validation for all inputs
@@ -77,6 +81,8 @@ Maven (Dependency Management)
 JWT (JSON Web Tokens for stateless authentication)
 BCrypt (Password Encryption)
 JJWT (JWT Library for token generation and validation)
+Spring Mail (Email Service with Gmail SMTP)
+Spring Async (Non-blocking email processing)
 ```
 
 ### **Frontend (React)**
@@ -98,6 +104,8 @@ Custom JWT Utilities (Token management & validation)
 - **Role-Based Access Control** - USER and ADMIN role separation
 - **Password Encryption** - BCrypt hashing with salt
 - **Token Expiration Management** - Automatic logout and session warnings
+- **Email Verification** - Secure account activation with time-limited tokens
+- **Account Status Control** - Enabled/disabled user accounts for security
 
 ### **Key Frontend Libraries**
 - **React Router** - Client-side routing with protected routes
@@ -129,17 +137,20 @@ Custom JWT Utilities (Token management & validation)
 │  ├─ AccountService (Account management & balance operations)
 │  ├─ TransactionService (Transaction processing & validation)
 │  ├─ UserService (User management & profile operations)
+│  ├─ EmailService (Async email verification & notifications)
 │  └─ CustomUserDetailsService (Spring Security user loading)
 │
 ├─ Repository Layer (Data Access & Persistence)
 │  ├─ AccountRepository (Account CRUD operations with JPA)
 │  ├─ TransactionRepository (Transaction data with pagination)
-│  └─ UserRepository (User data with custom queries)
+│  ├─ UserRepository (User data with custom queries)
+│  └─ VerificationTokenRepository (Email verification token storage)
 │
 ├─ Entity Layer (JPA Data Models)
-│  ├─ User (User information, roles, authentication)
+│  ├─ User (User information, roles, authentication, account status)
 │  ├─ Account (Bank account details, balance, account type)
-│  └─ Transactions (Transaction records, history, relationships)
+│  ├─ Transactions (Transaction records, history, relationships)
+│  └─ VerificationToken (Email verification tokens with expiration)
 │
 ├─ DTOs Layer (Data Transfer Objects)
 │  ├─ AuthRequest (JWT authentication request)
@@ -283,6 +294,63 @@ Account (1) ←→ (Many) Transaction
 - **Secure Headers** - X-Frame-Options, X-Content-Type-Options
 - **Token Security** - Secure JWT token storage in localStorage
 - **HTTPS Ready** - SSL/TLS configuration support for production
+
+---
+
+## 📧 Email Verification System
+
+### **Async Email Service**
+- **Non-Blocking Processing** - Async email sending using @Async annotation
+- **HTML Email Templates** - Beautiful, responsive email templates with branding
+- **Gmail SMTP Integration** - Production-ready email service configuration
+- **Error Handling** - Comprehensive logging and error management for email delivery
+
+### **Verification Token Management**
+```
+┌─ Registration Process Flow ────────────────────────────────────┐
+│  1. User submits registration → UserService.registerUser()    │
+│  2. User account created → Account assigned & saved          │
+│  3. Verification token generated → UUID.randomUUID()         │
+│  4. Token saved to database → 12-hour expiration set         │
+│  5. Email sent asynchronously → HTML verification email      │
+│  6. User receives email → Clicks verification link           │
+│  7. Token validated → /user/verify?token=...                 │
+│  8. Account activated → user.setIsEnabled(true)              │
+└───────────────────────────────────────────────────────────────┘
+```
+
+### **Email Verification Features**
+- **Token Expiration** - 12-hour expiration for security
+- **Secure Verification URL** - http://localhost:8080/user/verify?token=...
+- **Account Status Control** - Users cannot access banking features until verified
+- **HTML Email Design** - Professional email templates with call-to-action buttons
+- **Automatic Cleanup** - Expired tokens are handled gracefully
+
+### **Email Configuration**
+```properties
+# Gmail SMTP Configuration
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=${MAIL_USERNAME}
+spring.mail.password=${MAIL_PASSWORD}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+```
+
+### **Database Schema Enhancement**
+```sql
+-- VerificationToken Entity
+CREATE TABLE verification_token (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    user_user_id VARCHAR(255) REFERENCES users(user_id),
+    expiry_date TIMESTAMP NOT NULL
+);
+
+-- User Entity Enhancement
+ALTER TABLE users ADD COLUMN is_enabled BOOLEAN DEFAULT FALSE;
+```
 
 ---
 
@@ -479,14 +547,36 @@ Content-Type: application/json
 **Response (201 Created):**
 ```json
 {
-    "userId": "123e4567-e89b-12d3-a456-426614174000",
-    "fullName": "John Doe",
-    "email": "john.doe@example.com",
-    "role": "USER",
-    "accountNumber": 1462000001,
-    "balance": 1000.0,
-    "accountType": "SAVINGS"
+    "message": "User Registered Successfully and Verification link sent to the respective email!",
+    "data": {
+        "userId": "123e4567-e89b-12d3-a456-426614174000",
+        "fullName": "John Doe",
+        "email": "john.doe@example.com",
+        "role": "USER",
+        "accountNumber": 1462000001,
+        "balance": 1000.0,
+        "accountType": "SAVINGS"
+    }
 }
+```
+
+#### 3. Email Verification
+```http
+GET /user/verify?token={verification_token}
+```
+
+**Response (200 OK):**
+```
+User Verified Successfully!
+```
+
+**Response (400 Bad Request):**
+```
+Token expired
+```
+or
+```
+Invalid token!
 ```
 
 ### **User Management Endpoints**
@@ -610,6 +700,41 @@ GET /api/dashboard
 ```
 **Response:** `"This is dashboard ! That is open to all"`
 
+### **📋 Complete API Endpoints Summary**
+
+| Method | Endpoint | Description | Auth Required | Role Required |
+|--------|----------|-------------|---------------|---------------|
+| **Authentication & Public** |
+| POST | `/authenticate` | Login and get JWT token | No | Any |
+| POST | `/api/signup` | Register new user with email verification | No | Any |
+| GET | `/user/verify` | Verify email with token | No | Any |
+| GET | `/api/dashboard` | Public dashboard | No | Any |
+| **User Management** |
+| GET | `/user/dashboard` | Get user dashboard info | Yes | USER/ADMIN |
+| GET | `/user/balance` | Check account balance | Yes | USER/ADMIN |
+| PUT | `/user/{id}` | Update user profile | Yes | USER/ADMIN |
+| POST | `/user/change-password` | Change user password | Yes | USER/ADMIN |
+| DELETE | `/user/{id}` | Delete user account | Yes | USER/ADMIN |
+| **Transactions** |
+| GET | `/transactions/history` | Get transaction history (paginated) | Yes | USER/ADMIN |
+| POST | `/transactions/deposit` | Deposit money to account | Yes | USER/ADMIN |
+| POST | `/transactions/withdraw` | Withdraw money from account | Yes | USER/ADMIN |
+| POST | `/transactions/transfer` | Transfer money between accounts | Yes | USER/ADMIN |
+| **Admin Operations** |
+| GET | `/admin/users` | Get all users (paginated) | Yes | ADMIN |
+| POST | `/admin/users` | Create new user account | Yes | ADMIN |
+| DELETE | `/admin/users/{id}` | Delete user account | Yes | ADMIN |
+
+### **🔧 Postman Collection Features**
+
+- **Environment Variables**: Automatic token and user data management
+- **Test Scripts**: Automated response validation and variable extraction
+- **Email Verification Workflow**: Complete test scenario for email verification
+- **Error Handling**: Proper testing of invalid tokens and expired scenarios
+- **Admin Operations**: Separate tests for admin-only endpoints
+- **Authentication Management**: Public endpoints explicitly set to "No Auth" to prevent issues
+- **Collection Version**: 2.0.0 with email verification support
+
 ---
 
 ## 📁 Project Structure
@@ -646,7 +771,8 @@ BankApplication/
 │   │   ├── 📂 Entity/                             # JPA Entity Models
 │   │   │   ├── 📄 Account.java                    # Account entity
 │   │   │   ├── 📄 Transactions.java               # Transaction entity
-│   │   │   └── 📄 User.java                       # User entity
+│   │   │   ├── 📄 User.java                       # User entity
+│   │   │   └── 📄 VerificationToken.java          # Email verification token entity
 │   │   │
 │   │   ├── 📂 Enum/                               # Type-safe Constants
 │   │   │   ├── 📄 AccountType.java                # Account types (SAVINGS/CURRENT)
@@ -665,11 +791,13 @@ BankApplication/
 │   │   ├── 📂 Repository/                         # Data Access Layer
 │   │   │   ├── 📄 AccountRepository.java          # Account data operations
 │   │   │   ├── 📄 TransactionRepository.java      # Transaction data operations
-│   │   │   └── 📄 UserRepository.java             # User data operations
+│   │   │   ├── 📄 UserRepository.java             # User data operations
+│   │   │   └── 📄 VerificationTokenRepository.java # Email verification token operations
 │   │   │
 │   │   ├── 📂 Service/                            # Business Logic Layer
 │   │   │   ├── 📄 AccountService.java             # Account business logic
 │   │   │   ├── 📄 CustomUserDetailsService.java   # Spring Security user details
+│   │   │   ├── 📄 EmailService.java               # Async email verification service
 │   │   │   ├── 📄 TransactionService.java         # Transaction business logic
 │   │   │   └── 📄 UserService.java                # User business logic
 │   │   │
@@ -696,6 +824,7 @@ BankApplication/
 │   │       ├── 📂 pages/                          # Page Components
 │   │       │   ├── 📄 AdminDashboard.js           # Admin user management interface
 │   │       │   ├── 📄 Dashboard.js                # User main dashboard
+│   │       │   ├── 📄 EmailVerificationPage.js    # Email verification status page
 │   │       │   ├── 📄 LandingPage.js              # Home/marketing page
 │   │       │   ├── 📄 LoginPage.js                # User login page
 │   │       │   ├── 📄 Profile.js                  # User profile management
@@ -798,6 +927,71 @@ npm run build
 3. ✅ Database connection established
 4. ✅ Tables auto-created via Hibernate
 5. ✅ Can access landing page at `http://localhost:3000`
+
+### **🚀 Postman API Testing (Backend Only)**
+
+You can test the backend APIs directly using Postman without running the frontend. This is perfect for API testing, development, and integration testing.
+
+#### **Import Postman Collection**
+1. **Download the Collection**: Locate the `SecureBank_API_Collection.json` file in your project root
+2. **Open Postman**: Launch Postman application
+3. **Import Collection**: 
+   - Click "Import" button in Postman
+   - Select "Upload Files" or drag & drop the JSON file
+   - Choose `SecureBank_API_Collection.json`
+   - Click "Import"
+
+#### **Running Backend Only**
+```bash
+# 1. Start only the Spring Boot backend
+cd BankApplication
+mvn spring-boot:run
+
+# Backend will be available at: http://localhost:8080
+# No need to start the React frontend for API testing
+```
+
+#### **Testing Workflow with Postman**
+```bash
+# 1. Test Public Endpoints
+- GET /api/dashboard (No authentication required)
+
+# 2. Create User Account
+- POST /api/signup (Register new user with email verification)
+
+# 3. Email Verification (Manual)
+- Check backend console for verification token
+- GET /user/verify?token={your_token} (Verify account)
+
+# 4. Authentication
+- POST /authenticate (Login and get JWT token)
+- Token automatically saved in Postman environment
+
+# 5. Protected Operations
+- GET /user/dashboard (User dashboard with JWT)
+- POST /transactions/deposit (Deposit money)
+- GET /transactions/history (View transaction history)
+
+# 6. Admin Operations (if admin user)
+- GET /admin/users (List all users)
+- POST /admin/users (Create new user)
+```
+
+#### **Postman Collection Features**
+- ✅ **Pre-configured Requests**: All 15+ API endpoints ready to use
+- ✅ **Environment Variables**: Automatic token and base URL management
+- ✅ **Test Scripts**: Response validation and variable extraction
+- ✅ **Authentication Handling**: Automatic JWT token management
+- ✅ **Error Testing**: Invalid token and expired scenarios
+- ✅ **Email Verification**: Complete verification workflow tests
+- ✅ **Admin Operations**: Separate admin-only endpoint tests
+
+#### **Benefits of Backend-Only Testing**
+- 🚀 **Faster Development**: Test APIs without frontend compilation
+- 🧪 **Isolated Testing**: Focus on backend logic and data validation
+- 🔄 **Quick Iteration**: Rapid API testing and debugging
+- 📊 **Data Validation**: Direct database state verification
+- 🛠️ **Integration Testing**: Perfect for CI/CD pipeline testing
 
 ---
 
