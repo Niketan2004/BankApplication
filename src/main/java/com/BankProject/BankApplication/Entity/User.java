@@ -30,8 +30,13 @@ public class User {
      @NotNull(message = "Please Provide a Password")
      private String password;
 
+     @Column(nullable = false)
+     private Boolean isEnabled;
+
      @Enumerated(EnumType.STRING)
      private Role role;
+
+     
 
      // One-to-one relationship with Account
      // User is the "owning" side here, meaning 'users' table will have a foreign key
@@ -39,4 +44,5 @@ public class User {
      @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // CascadeType.ALL: Operations on User cascade to Account
      @JoinColumn(name = "account_id", referencedColumnName = "accountNumber", unique = true) // Foreign key in 'users'  table
      private Account account; // Field name is 'account'
+
 }

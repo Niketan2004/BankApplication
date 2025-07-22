@@ -1,0 +1,780 @@
+{
+     "info": {
+          "name": "SecureBank API Collection",
+          "description": "Comprehensive API collection for SecureBank - A Spring Boot Banking Application with JWT Authentication",
+          "version": "1.0.0",
+          "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+     },
+     "auth": {
+          "type": "bearer",
+          "bearer": [
+               {
+                    "key": "token",
+                    "value": "{{jwt_token}}",
+                    "type": "string"
+               }
+          ]
+     },
+     "variable": [
+          {
+               "key": "base_url",
+               "value": "http://localhost:8080",
+               "type": "string"
+          },
+          {
+               "key": "jwt_token",
+               "value": "",
+               "type": "string"
+          },
+          {
+               "key": "user_id",
+               "value": "",
+               "type": "string"
+          },
+          {
+               "key": "account_number",
+               "value": "",
+               "type": "string"
+          }
+     ],
+     "item": [
+          {
+               "name": "Authentication",
+               "item": [
+                    {
+                         "name": "Login (Generate JWT Token)",
+                         "event": [
+                              {
+                                   "listen": "test",
+                                   "script": {
+                                        "exec": [
+                                             "if (pm.response.code === 200) {",
+                                             "    var token = pm.response.text();",
+                                             "    pm.collectionVariables.set('jwt_token', token);",
+                                             "    console.log('JWT Token saved:', token);",
+                                             "}"
+                                        ],
+                                        "type": "text/javascript"
+                                   }
+                              }
+                         ],
+                         "request": {
+                              "method": "POST",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "{\n  \"username\": \"admin@bank.com\",\n  \"password\": \"admin123\"\n}"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/authenticate",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "authenticate"
+                                   ]
+                              },
+                              "description": "Authenticate user and receive JWT token. Update username/password as needed."
+                         }
+                    }
+               ],
+               "description": "Authentication endpoints for JWT token generation"
+          },
+          {
+               "name": "Public Endpoints",
+               "item": [
+                    {
+                         "name": "User Registration",
+                         "event": [
+                              {
+                                   "listen": "test",
+                                   "script": {
+                                        "exec": [
+                                             "if (pm.response.code === 201) {",
+                                             "    var response = pm.response.json();",
+                                             "    pm.collectionVariables.set('user_id', response.userId);",
+                                             "    pm.collectionVariables.set('account_number', response.accountNumber);",
+                                             "    console.log('User created with ID:', response.userId);",
+                                             "    console.log('Account Number:', response.accountNumber);",
+                                             "}"
+                                        ],
+                                        "type": "text/javascript"
+                                   }
+                              }
+                         ],
+                         "request": {
+                              "method": "POST",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "{\n  \"fullName\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"USER\",\n  \"balance\": 1000.0,\n  \"accountType\": \"SAVINGS\"\n}"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/api/signup",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "api",
+                                        "signup"
+                                   ]
+                              },
+                              "description": "Register a new user with account creation"
+                         }
+                    },
+                    {
+                         "name": "Public Dashboard",
+                         "request": {
+                              "method": "GET",
+                              "url": {
+                                   "raw": "{{base_url}}/api/dashboard",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "api",
+                                        "dashboard"
+                                   ]
+                              },
+                              "description": "Public dashboard endpoint (no authentication required)"
+                         }
+                    }
+               ],
+               "description": "Public endpoints that don't require authentication"
+          },
+          {
+               "name": "User Management",
+               "item": [
+                    {
+                         "name": "Get User Dashboard",
+                         "event": [
+                              {
+                                   "listen": "test",
+                                   "script": {
+                                        "exec": [
+                                             "if (pm.response.code === 200) {",
+                                             "    var response = pm.response.json();",
+                                             "    pm.collectionVariables.set('user_id', response.userId);",
+                                             "    pm.collectionVariables.set('account_number', response.accountNumber);",
+                                             "    console.log('User ID:', response.userId);",
+                                             "    console.log('Account Number:', response.accountNumber);",
+                                             "}"
+                                        ],
+                                        "type": "text/javascript"
+                                   }
+                              }
+                         ],
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "GET",
+                              "header": [],
+                              "url": {
+                                   "raw": "{{base_url}}/user/dashboard",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "user",
+                                        "dashboard"
+                                   ]
+                              },
+                              "description": "Get current user's dashboard information"
+                         }
+                    },
+                    {
+                         "name": "Check Account Balance",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "GET",
+                              "header": [],
+                              "url": {
+                                   "raw": "{{base_url}}/user/balance",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "user",
+                                        "balance"
+                                   ]
+                              },
+                              "description": "Check current user's account balance"
+                         }
+                    },
+                    {
+                         "name": "Update User Profile",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "PUT",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "{\n  \"fullName\": \"John Smith\",\n  \"email\": \"john.smith@example.com\"\n}"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/user/{{user_id}}",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "user",
+                                        "{{user_id}}"
+                                   ]
+                              },
+                              "description": "Update user profile information"
+                         }
+                    },
+                    {
+                         "name": "Change Password",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "POST",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/user/change-password",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "user",
+                                        "change-password"
+                                   ]
+                              },
+                              "description": "Change user password with current password validation"
+                         }
+                    },
+                    {
+                         "name": "Delete User Account",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "DELETE",
+                              "header": [],
+                              "url": {
+                                   "raw": "{{base_url}}/user/{{user_id}}",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "user",
+                                        "{{user_id}}"
+                                   ]
+                              },
+                              "description": "Delete user account (requires proper authorization)"
+                         }
+                    }
+               ],
+               "description": "User management endpoints (require USER or ADMIN role)"
+          },
+          {
+               "name": "Transactions",
+               "item": [
+                    {
+                         "name": "Get Transaction History",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "GET",
+                              "header": [],
+                              "url": {
+                                   "raw": "{{base_url}}/transactions/history?page=0&size=10",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "transactions",
+                                        "history"
+                                   ],
+                                   "query": [
+                                        {
+                                             "key": "page",
+                                             "value": "0",
+                                             "description": "Page number (0-based)"
+                                        },
+                                        {
+                                             "key": "size",
+                                             "value": "10",
+                                             "description": "Number of transactions per page"
+                                        }
+                                   ]
+                              },
+                              "description": "Get paginated transaction history for current user"
+                         }
+                    },
+                    {
+                         "name": "Deposit Money",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "POST",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "1500.0"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/transactions/deposit",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "transactions",
+                                        "deposit"
+                                   ]
+                              },
+                              "description": "Deposit money to current user's account"
+                         }
+                    },
+                    {
+                         "name": "Withdraw Money",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "POST",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "500.0"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/transactions/withdraw",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "transactions",
+                                        "withdraw"
+                                   ]
+                              },
+                              "description": "Withdraw money from current user's account"
+                         }
+                    },
+                    {
+                         "name": "Transfer Money",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "POST",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "{\n  \"senderAccountNumber\": 1462000001,\n  \"recieverAccountNumber\": 1462000002,\n  \"amount\": 300.0\n}"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/transactions/transfer",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "transactions",
+                                        "transfer"
+                                   ]
+                              },
+                              "description": "Transfer money between accounts"
+                         }
+                    }
+               ],
+               "description": "Transaction endpoints for banking operations"
+          },
+          {
+               "name": "Admin Operations",
+               "item": [
+                    {
+                         "name": "Get All Users (Admin)",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "GET",
+                              "header": [],
+                              "url": {
+                                   "raw": "{{base_url}}/admin/users?page=0&size=10",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "admin",
+                                        "users"
+                                   ],
+                                   "query": [
+                                        {
+                                             "key": "page",
+                                             "value": "0",
+                                             "description": "Page number (0-based)"
+                                        },
+                                        {
+                                             "key": "size",
+                                             "value": "10",
+                                             "description": "Number of users per page"
+                                        }
+                                   ]
+                              },
+                              "description": "Get all users with pagination (Admin only)"
+                         }
+                    },
+                    {
+                         "name": "Create User (Admin)",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "POST",
+                              "header": [
+                                   {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                   }
+                              ],
+                              "body": {
+                                   "mode": "raw",
+                                   "raw": "{\n  \"fullName\": \"Jane Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"USER\",\n  \"balance\": 2000.0,\n  \"accountType\": \"CURRENT\"\n}"
+                              },
+                              "url": {
+                                   "raw": "{{base_url}}/admin/users",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "admin",
+                                        "users"
+                                   ]
+                              },
+                              "description": "Create a new user (Admin only)"
+                         }
+                    },
+                    {
+                         "name": "Delete User (Admin)",
+                         "request": {
+                              "auth": {
+                                   "type": "bearer",
+                                   "bearer": [
+                                        {
+                                             "key": "token",
+                                             "value": "{{jwt_token}}",
+                                             "type": "string"
+                                        }
+                                   ]
+                              },
+                              "method": "DELETE",
+                              "header": [],
+                              "url": {
+                                   "raw": "{{base_url}}/admin/users/{{user_id}}",
+                                   "host": [
+                                        "{{base_url}}"
+                                   ],
+                                   "path": [
+                                        "admin",
+                                        "users",
+                                        "{{user_id}}"
+                                   ]
+                              },
+                              "description": "Delete a user by ID (Admin only)"
+                         }
+                    }
+               ],
+               "description": "Admin-only endpoints for user management"
+          },
+          {
+               "name": "Test Scenarios",
+               "item": [
+                    {
+                         "name": "Complete User Flow Test",
+                         "item": [
+                              {
+                                   "name": "1. Register New User",
+                                   "request": {
+                                        "method": "POST",
+                                        "header": [
+                                             {
+                                                  "key": "Content-Type",
+                                                  "value": "application/json"
+                                             }
+                                        ],
+                                        "body": {
+                                             "mode": "raw",
+                                             "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"test.user@example.com\",\n  \"password\": \"testpass123\",\n  \"role\": \"USER\",\n  \"balance\": 5000.0,\n  \"accountType\": \"SAVINGS\"\n}"
+                                        },
+                                        "url": {
+                                             "raw": "{{base_url}}/api/signup",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "api",
+                                                  "signup"
+                                             ]
+                                        }
+                                   }
+                              },
+                              {
+                                   "name": "2. Login with New User",
+                                   "event": [
+                                        {
+                                             "listen": "test",
+                                             "script": {
+                                                  "exec": [
+                                                       "if (pm.response.code === 200) {",
+                                                       "    var token = pm.response.text();",
+                                                       "    pm.collectionVariables.set('jwt_token', token);",
+                                                       "}"
+                                                  ],
+                                                  "type": "text/javascript"
+                                             }
+                                        }
+                                   ],
+                                   "request": {
+                                        "method": "POST",
+                                        "header": [
+                                             {
+                                                  "key": "Content-Type",
+                                                  "value": "application/json"
+                                             }
+                                        ],
+                                        "body": {
+                                             "mode": "raw",
+                                             "raw": "{\n  \"username\": \"test.user@example.com\",\n  \"password\": \"testpass123\"\n}"
+                                        },
+                                        "url": {
+                                             "raw": "{{base_url}}/authenticate",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "authenticate"
+                                             ]
+                                        }
+                                   }
+                              },
+                              {
+                                   "name": "3. Get Dashboard",
+                                   "request": {
+                                        "auth": {
+                                             "type": "bearer",
+                                             "bearer": [
+                                                  {
+                                                       "key": "token",
+                                                       "value": "{{jwt_token}}",
+                                                       "type": "string"
+                                                  }
+                                             ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                             "raw": "{{base_url}}/user/dashboard",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "user",
+                                                  "dashboard"
+                                             ]
+                                        }
+                                   }
+                              },
+                              {
+                                   "name": "4. Make Deposit",
+                                   "request": {
+                                        "auth": {
+                                             "type": "bearer",
+                                             "bearer": [
+                                                  {
+                                                       "key": "token",
+                                                       "value": "{{jwt_token}}",
+                                                       "type": "string"
+                                                  }
+                                             ]
+                                        },
+                                        "method": "POST",
+                                        "header": [
+                                             {
+                                                  "key": "Content-Type",
+                                                  "value": "application/json"
+                                             }
+                                        ],
+                                        "body": {
+                                             "mode": "raw",
+                                             "raw": "1000.0"
+                                        },
+                                        "url": {
+                                             "raw": "{{base_url}}/transactions/deposit",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "transactions",
+                                                  "deposit"
+                                             ]
+                                        }
+                                   }
+                              },
+                              {
+                                   "name": "5. Check Transaction History",
+                                   "request": {
+                                        "auth": {
+                                             "type": "bearer",
+                                             "bearer": [
+                                                  {
+                                                       "key": "token",
+                                                       "value": "{{jwt_token}}",
+                                                       "type": "string"
+                                                  }
+                                             ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                             "raw": "{{base_url}}/transactions/history?page=0&size=5",
+                                             "host": [
+                                                  "{{base_url}}"
+                                             ],
+                                             "path": [
+                                                  "transactions",
+                                                  "history"
+                                             ],
+                                             "query": [
+                                                  {
+                                                       "key": "page",
+                                                       "value": "0"
+                                                  },
+                                                  {
+                                                       "key": "size",
+                                                       "value": "5"
+                                                  }
+                                             ]
+                                        }
+                                   }
+                              }
+                         ]
+                    }
+               ],
+               "description": "Complete test scenarios for different user flows"
+          }
+     ]
+}

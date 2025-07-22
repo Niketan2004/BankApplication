@@ -1,7 +1,9 @@
 package com.BankProject.BankApplication.Service;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import javax.security.auth.login.AccountNotFoundException;
 
@@ -10,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,10 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.BankProject.BankApplication.DTOs.CustomUserInfo;
 import com.BankProject.BankApplication.DTOs.UserAccountTemplate;
 import com.BankProject.BankApplication.Entity.User;
+import com.BankProject.BankApplication.Entity.VerificationToken;
 import com.BankProject.BankApplication.Enum.Role;
 import com.BankProject.BankApplication.Exceptions.UserAlreadyExistsException;
 import com.BankProject.BankApplication.Exceptions.UserNotFoundException;
 import com.BankProject.BankApplication.Repository.UserRepository;
+import com.BankProject.BankApplication.Repository.VerificationTokenRepository;
 
 @Service
 public class UserService {
@@ -34,7 +39,11 @@ public class UserService {
      private UserRepository userRepository;
      @Autowired
      private AccountService accountService;
+     @Autowired
+     private EmailService emailService;
 
+     @Autowired
+     private VerificationTokenRepository verificationTokenRepository;
      // ====================USER SIDE FUNCTIONALITIES=============================
 
      // registers a new user
@@ -47,11 +56,22 @@ public class UserService {
                user.setEmail(userAccountTemplate.getEmail());
                user.setPassword(passwordEncoder.encode(userAccountTemplate.getPassword()));
                user.setRole(userAccountTemplate.getRole());
+               user.setIsEnabled(false);
                User savedUser = userRepository.save(user);
                // setting an account to the user
                savedUser.setAccount(accountService.createAccount(userAccountTemplate, savedUser));
                // saving user into database
                savedUser = userRepository.save(savedUser);
+
+               // -=================== Email verification ========================
+               String token = UUID.randomUUID().toString();
+               VerificationToken verificationToken = new VerificationToken();
+               verificationToken.setToken(token);
+               verificationToken.setUser(savedUser);
+               verificationToken.setExpiryDate(LocalDateTime.now().plusHours(12));
+               verificationTokenRepository.save(verificationToken);
+               emailService.sendVerificationEmail(savedUser.getEmail(), token);
+
                return createCustomUserInfo(savedUser);
           }
           throw new UserAlreadyExistsException("User with email " + userAccountTemplate.getEmail() + " already exists");
@@ -198,6 +218,26 @@ public class UserService {
                               user.getAccount().getAccountType()))
                     .toList();
           return new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
+     }
+
+     // verifies the token sent from the email
+     public ResponseEntity<?> verifyToken(String token) {
+          VerificationToken verificationToken = verificationTokenRepository.findByToken(token);
+          if (verificationToken != null) {
+
+               if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                    return ResponseEntity.badRequest().body("Token expired");
+               }
+
+               User user = verificationToken.getUser(); // gets the user from the token to enable the user.
+               user.setIsEnabled(true);
+               userRepository.save(user);
+               return ResponseEntity.ok().body("User Verified Succesfully!");
+
+          }
+
+          return ResponseEntity.badRequest().body("Invalid token!");
+
      }
 
      // OTHER FUNCTIONALITIES SUCH AS DELETE AND CREATE USER IS APLLICABLE SAME AS
