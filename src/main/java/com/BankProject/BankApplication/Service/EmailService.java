@@ -26,7 +26,7 @@ public class EmailService {
           String htmlContent = "<html>"
                     + "<body>"
                     + "<h2>Thank you for registering! Into SecureBank</h2>"
-                    + "<p>Please click the button below to verify your account:</p>"
+                    + "<p>Please click the button below to verify your account. Please remeber that Link is only valid till 2hrs:</p>"
                     + "<a href='" + verificationUrl + "' style='display:inline-block;padding:10px 20px;"
                     + "background-color:#4CAF50;color:white;text-decoration:none;border-radius:5px;'>Verify Account</a>"
                     + "<p>If the button doesn't work, copy and paste this link into your browser:</p>"

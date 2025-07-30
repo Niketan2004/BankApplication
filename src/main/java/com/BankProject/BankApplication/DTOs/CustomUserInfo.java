@@ -1,6 +1,8 @@
 package com.BankProject.BankApplication.DTOs;
 
 
+import java.io.Serializable;
+
 import com.BankProject.BankApplication.Enum.AccountType;
 import com.BankProject.BankApplication.Enum.Role;
 
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomUserInfo {
+public class CustomUserInfo implements Serializable {
      private String userId;
      private String fullName;
      private String email;

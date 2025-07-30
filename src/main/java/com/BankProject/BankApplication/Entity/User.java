@@ -2,6 +2,8 @@ package com.BankProject.BankApplication.Entity;
 
 
 
+import java.io.Serializable;
+
 import com.BankProject.BankApplication.Enum.Role;
 import jakarta.persistence.*; // Import all from persistence
 import jakarta.validation.constraints.Email;
@@ -15,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users") // Good practice to explicitly name table if it conflicts with SQL keywords
-public class User {
+public class User implements Serializable{
      @Id
      @GeneratedValue(strategy = GenerationType.UUID)
      private String userId;

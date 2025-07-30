@@ -5,6 +5,8 @@ import jakarta.persistence.*; // Import all from persistence
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Account {
+public class Account implements Serializable {
      @Id
      @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "account_number_sequence")
      @SequenceGenerator(name = "account_number_sequence", // Name of the generator in JPA

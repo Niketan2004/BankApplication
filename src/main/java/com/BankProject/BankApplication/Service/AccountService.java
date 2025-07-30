@@ -3,6 +3,9 @@ package com.BankProject.BankApplication.Service;
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.BankProject.BankApplication.DTOs.UserAccountTemplate;
@@ -17,6 +20,7 @@ public class AccountService {
 
 
      // creating a new account when new user is registered
+     @CachePut(value = "account", key = "#user.userId")
      public Account createAccount(UserAccountTemplate userAccountTemplate, User user) {
           Account account = new Account();
           account.setBalance(userAccountTemplate.getBalance());
@@ -29,6 +33,7 @@ public class AccountService {
      }
 
      // deleting the account when user is deleted
+     @CacheEvict(value="account", key="#account.accountNumber")
      public boolean deleteAccount(Account account) {
           if (accountRepository.existsById(account.getAccountNumber())) {
                accountRepository.delete(account);
@@ -38,6 +43,7 @@ public class AccountService {
      }
 
      // CHECK ACOUNT BALANCE
+     @Cacheable(value = "accountBalance", key = "#accountNumber")
      public Double checkBalance(Long accountNumber) throws AccountNotFoundException {
           return accountRepository.findById(accountNumber).get().getBalance();
      }

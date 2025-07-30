@@ -1,5 +1,6 @@
 package com.BankProject.BankApplication.DTOs;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.BankProject.BankApplication.Enum.TransactionTypes;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionResponseDTO {
+public class TransactionResponseDTO implements Serializable {
      private String transactionId;
      private Double amount;
      private TransactionTypes type;

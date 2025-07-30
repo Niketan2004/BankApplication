@@ -5,8 +5,12 @@ import java.time.LocalDateTime;
 
 import javax.naming.directory.InvalidAttributesException;
 import javax.security.auth.login.AccountNotFoundException;
-
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +30,10 @@ import com.BankProject.BankApplication.Repository.AccountRepository;
 import com.BankProject.BankApplication.Repository.TransactionRepository;
 import com.BankProject.BankApplication.Repository.UserRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class TransactionService {
 
      @Autowired
@@ -39,8 +46,10 @@ public class TransactionService {
      private AccountRepository accountRepository;
 
      // Logic behind getting all the transaction history
+     @Cacheable(value = "transactionHistory", key = "#root.target.findUserEmail()")
      public Page<TransactionResponseDTO> checkTransactionHistory(int page, int size) {
           User user = findUser();
+          log.info("Checking transaction history of user {}", user.getEmail());
           Pageable pageable = PageRequest.of(page, size);
           return transactionRepository.findByAccount_AccountNumber(user.getAccount().getAccountNumber(), pageable)
                     .map(transaction -> new TransactionResponseDTO(
@@ -52,8 +61,14 @@ public class TransactionService {
      }
 
      // Deposit Amount
+     @Caching(evict = {
+               @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true),
+               @CacheEvict(value = "accountBalance", key = "#accountNumber")
+     })
+     @Transactional
      public TransactionResponseDTO deposit(Double amount) throws IllegalArgumentException {
           if (amount < 0) {
+               log.error("Amount should not  Negative!");
                throw new IllegalArgumentException("Amount should not be negative");
           }
           User user = findUser();
@@ -64,6 +79,8 @@ public class TransactionService {
      }
 
      // Withdraw amount
+     @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
+     @Transactional
      public TransactionResponseDTO withdraw(Double amount)
                throws IllegalArgumentException, InsufficientAmountException {
           if (amount < 0) {
@@ -81,13 +98,15 @@ public class TransactionService {
 
      // transfer amount
      @Transactional
+     @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
      public TransactionResponseDTO transferAmount(TransferSlip transferSlip)
                throws AccountNotFoundException, InvalidAttributesException, AccessDeniedException {
           if (transferSlip.getSenderAccountNumber() == null || transferSlip.getRecieverAccountNumber() == null
                     || transferSlip.getAmount() < 1.0) {
+               log.error("Invalid data {}", transferSlip);
                throw new InvalidAttributesException("Please give valid data!");
           }
-          String email = SecurityContextHolder.getContext().getAuthentication().getName();
+          String email = findUserEmail();
           // this is the account of the sender
           Account senderAccount = accountRepository.findById(transferSlip.getSenderAccountNumber())
                     .orElseThrow(() -> new AccountNotFoundException(
@@ -114,7 +133,7 @@ public class TransactionService {
           }
           // SETTING SENDERS ACCOUNT BALANCE
           senderAccount.setBalance(senderAccount.getBalance() - transferSlip.getAmount());
-          // STTING RECIVERS ACCOUNT BALANCE
+          // SETTING RECIVERS ACCOUNT BALANCE
           recieverAccount.setBalance(recieverAccount.getBalance() + transferSlip.getAmount());
           // SAVING SENDERS ACCOUNT INTO DATABASE
           accountRepository.save(senderAccount);
@@ -147,10 +166,16 @@ public class TransactionService {
      }
 
      // Finds the respective user
+     @Cacheable(value = "users", key = "#root.target.findUserEmail()")
      private User findUser() {
-          String email = SecurityContextHolder.getContext().getAuthentication().getName();
+          String email = findUserEmail();
           return userRepository.findUserByEmailIgnoreCase(email)
                     .orElseThrow(() -> new UserNotFoundException("user for the given email  " + email + " not found"));
+     }
+
+     // Finding email for caching
+     public String findUserEmail() {
+          return SecurityContextHolder.getContext().getAuthentication().getName();
      }
 
 }

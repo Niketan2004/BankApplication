@@ -8,6 +8,9 @@ import java.util.UUID;
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +32,10 @@ import com.BankProject.BankApplication.Exceptions.UserNotFoundException;
 import com.BankProject.BankApplication.Repository.UserRepository;
 import com.BankProject.BankApplication.Repository.VerificationTokenRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class UserService {
      // Password encoder is declare to encode the raw password entered by the user
      @Autowired
@@ -68,7 +74,7 @@ public class UserService {
                VerificationToken verificationToken = new VerificationToken();
                verificationToken.setToken(token);
                verificationToken.setUser(savedUser);
-               verificationToken.setExpiryDate(LocalDateTime.now().plusHours(12));
+               verificationToken.setExpiryDate(LocalDateTime.now().plusHours(2));
                verificationTokenRepository.save(verificationToken);
                emailService.sendVerificationEmail(savedUser.getEmail(), token);
 
@@ -78,6 +84,11 @@ public class UserService {
      }
 
      // UPDATE THE EXISTING USER
+
+     @Caching(evict = { // Use @Caching to group multiple @CacheEvict annotations
+               @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
+               @CacheEvict(value = "users", key = "#existingUser.email", beforeInvocation = true)
+     })
      public CustomUserInfo updateUser(String id, User updatedUser) throws AccessDeniedException {
           // FINDS THE USER BY THE ID
           User existingUser = userRepository.findById(id)
@@ -106,7 +117,7 @@ public class UserService {
      }
 
      // deletes the user from the database
-
+     @CacheEvict(value = { "currentUserInfo", "users" }, allEntries = true)
      public Boolean deleteUser(String id) throws AccessDeniedException {
           boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                     .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
@@ -119,10 +130,13 @@ public class UserService {
      }
 
      // checking acount balance
-     public double accountBalance() throws AccountNotFoundException {
-          String email = SecurityContextHolder.getContext().getAuthentication().getName();
-          User user = userRepository.findUserByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new UserNotFoundException("user for the given email  " + email + " not found"));
+     @Cacheable(value = "accountBalance", key = "#root.target.findCurrentUserEmail()")
+     public double accountBalance() throws AccountNotFoundException { 
+          User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
+                    .orElseThrow(() -> new UserNotFoundException(
+                              "user for the given email  " + findCurrentUserEmail() + " not found"));
+                              
+                              log.info("called balance method ");
           return accountService.checkBalance(user.getAccount().getAccountNumber());
      }
 
@@ -130,10 +144,6 @@ public class UserService {
           // GETS THE USER BY THE ID
           User user = userRepository.findById(id)
                     .orElseThrow(() -> new UserNotFoundException("user for the given id " + id + " not found"));
-          // FINDS LOGGED IN USER
-          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-          // GET THE LOGGED IN USERS ID i.e EMAIL
-          String email = authentication.getName();
           /*
            * IF THE LOGGED IN USER'S EAMIL IS SAME AS THE USER RETRIEVED BY THE ID, ONLY
            * THEN THE USER IS DELETED IF NOT THEN IT THROWS THE ERROR
@@ -141,7 +151,7 @@ public class UserService {
            * ONLY THE USER LOGGED IN HAS THE PERMISSION TO DELTES HIS OWN ACCOUNT NOT
            * THE OTHER ACCOUNT.
            */
-          return user.getEmail().equals(email);
+          return user.getEmail().equals(findCurrentUserEmail());
      }
 
      private CustomUserInfo createCustomUserInfo(User user) {
@@ -169,25 +179,28 @@ public class UserService {
      }
 
      // Get current user info for dashboard
+     @Cacheable(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()")
      public CustomUserInfo getCurrentUserInfo() {
-          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-          String email = authentication.getName();
-          User user = userRepository.findUserByEmailIgnoreCase(email)
+          User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
           return createCustomUserInfo(user);
      }
 
      // Find user by email
+     @Cacheable(value = "users", key = "#email")
      public User findUserByEmail(String email) {
           return userRepository.findUserByEmailIgnoreCase(email)
                     .orElse(null);
      }
 
      // Change password with current password validation
+     @Caching(evict = {
+               @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
+               @CacheEvict(value = "users", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true)
+     })
      public void changePassword(String currentPassword, String newPassword) {
-          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-          String email = authentication.getName();
-          User user = userRepository.findUserByEmailIgnoreCase(email)
+          // get the user by email
+          User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
           // Verify current password
           if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
@@ -198,10 +211,7 @@ public class UserService {
           userRepository.save(user);
      }
 
-     // ======================================================================
-
-     // =====================ADMIN SIDE FUNCTIONALITIES========================
-
+     @Cacheable(value = "allUsers", key = "#page + '-' + #size")
      public Page<CustomUserInfo> getAllUsers(int page, int size) {
           Pageable pageable = PageRequest.of(page, size);
           Page<User> userPage = userRepository.findAll(pageable);
@@ -221,6 +231,10 @@ public class UserService {
      }
 
      // verifies the token sent from the email
+     @Caching(evict = {
+               @CacheEvict(value = "currentUserInfo", key = "#user.email", beforeInvocation = true),
+               @CacheEvict(value = "users", key = "#user.email", beforeInvocation = true)
+     })
      public ResponseEntity<?> verifyToken(String token) {
           VerificationToken verificationToken = verificationTokenRepository.findByToken(token);
           if (verificationToken != null) {
@@ -240,6 +254,10 @@ public class UserService {
 
      }
 
+     // finds user email
+     public String findCurrentUserEmail() {
+          return SecurityContextHolder.getContext().getAuthentication().getName();
+     }
      // OTHER FUNCTIONALITIES SUCH AS DELETE AND CREATE USER IS APLLICABLE SAME AS
      // THE IUSER METHODS
 }

@@ -8,6 +8,7 @@ import com.BankProject.BankApplication.Repository.UserRepository;
 import com.BankProject.BankApplication.Utils.JwtUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,7 +29,8 @@ public class AuthController {
      private UserRepository userRepository;
 
      @PostMapping("/authenticate")
-     public ResponseEntity<?> generateToken(@RequestBody AuthRequest authRequest) throws Exception {
+     
+     public ResponseEntity<?> generateJwtToken(@RequestBody AuthRequest authRequest) throws Exception {
           // Step 1: Fetch user from DB
           User user = userRepository.findUserByEmailIgnoreCase(authRequest.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));

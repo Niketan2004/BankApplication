@@ -1,5 +1,6 @@
 package com.BankProject.BankApplication.Entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import com.BankProject.BankApplication.Enum.TransactionTypes;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Transactions {
+public class Transactions implements Serializable {
 
      @Id
      @GeneratedValue(strategy = GenerationType.UUID)

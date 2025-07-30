@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransferSlip {
+public class TransferSlip  {
      @NotNull(message = "Senders account is must..it should not be empty!")
      private Long senderAccountNumber;
      @NotNull(message = "Recievers account number is must...it should not be empty")

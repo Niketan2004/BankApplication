@@ -3,12 +3,13 @@ package com.BankProject.BankApplication.DTOs; // Or a dedicated 'error' package
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
 
 @Data
-public class ErrorResponse {
+public class ErrorResponse implements Serializable{
 
      @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'")
      private LocalDateTime timestamp;
