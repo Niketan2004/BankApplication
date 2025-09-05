@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
      private UserRepository userRepository;
 
      @Override
-     @Cacheable(value = "userdetails", key = "#username")
+     // @Cacheable(value = "userdetails", key = "#username")
      public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
           User user = userRepository.findUserByEmailIgnoreCase(username)

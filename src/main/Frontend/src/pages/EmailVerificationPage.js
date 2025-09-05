@@ -8,9 +8,25 @@ const EmailVerificationPage = () => {
      const [verificationStatus, setVerificationStatus] = useState('loading'); // 'loading', 'success', 'error', 'expired'
      const [message, setMessage] = useState('');
      const token = searchParams.get('token');
+     const status = searchParams.get('status'); // Get status from URL parameters
 
      useEffect(() => {
           const verifyEmail = async () => {
+               // If status is provided in URL, use it directly (from backend redirect)
+               if (status) {
+                    if (status === 'success') {
+                         setVerificationStatus('success');
+                         setMessage('Your email has been verified successfully!');
+                         toast.success('Email verified! You can now log in to your account.');
+                    } else if (status === 'error') {
+                         setVerificationStatus('error');
+                         setMessage('Email verification failed. The token may be invalid or expired.');
+                         toast.error('Email verification failed');
+                    }
+                    return;
+               }
+
+               // Fallback: Make API call if no status in URL
                if (!token) {
                     setVerificationStatus('error');
                     setMessage('No verification token found.');
@@ -50,7 +66,7 @@ const EmailVerificationPage = () => {
           };
 
           verifyEmail();
-     }, [token]);
+     }, [token, status]); // Add status to dependency array
 
      const getStatusIcon = () => {
           switch (verificationStatus) {

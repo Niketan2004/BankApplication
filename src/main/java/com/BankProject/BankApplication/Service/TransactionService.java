@@ -5,10 +5,8 @@ import java.time.LocalDateTime;
 
 import javax.naming.directory.InvalidAttributesException;
 import javax.security.auth.login.AccountNotFoundException;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -46,7 +44,7 @@ public class TransactionService {
      private AccountRepository accountRepository;
 
      // Logic behind getting all the transaction history
-     @Cacheable(value = "transactionHistory", key = "#root.target.findUserEmail()")
+     // @Cacheable(value = "transactionHistory", key = "#root.target.findUserEmail()")
      public Page<TransactionResponseDTO> checkTransactionHistory(int page, int size) {
           User user = findUser();
           log.info("Checking transaction history of user {}", user.getEmail());
@@ -61,10 +59,10 @@ public class TransactionService {
      }
 
      // Deposit Amount
-     @Caching(evict = {
-               @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true),
-               @CacheEvict(value = "accountBalance", key = "#accountNumber")
-     })
+     // @Caching(evict = {
+     //           @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true),
+     //           @CacheEvict(value = "accountBalance", key = "#accountNumber")
+     // })
      @Transactional
      public TransactionResponseDTO deposit(Double amount) throws IllegalArgumentException {
           if (amount < 0) {
@@ -79,7 +77,7 @@ public class TransactionService {
      }
 
      // Withdraw amount
-     @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
+     // @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
      @Transactional
      public TransactionResponseDTO withdraw(Double amount)
                throws IllegalArgumentException, InsufficientAmountException {
@@ -98,7 +96,7 @@ public class TransactionService {
 
      // transfer amount
      @Transactional
-     @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
+     // @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
      public TransactionResponseDTO transferAmount(TransferSlip transferSlip)
                throws AccountNotFoundException, InvalidAttributesException, AccessDeniedException {
           if (transferSlip.getSenderAccountNumber() == null || transferSlip.getRecieverAccountNumber() == null
@@ -166,7 +164,7 @@ public class TransactionService {
      }
 
      // Finds the respective user
-     @Cacheable(value = "users", key = "#root.target.findUserEmail()")
+     // @Cacheable(value = "users", key = "#root.target.findUserEmail()")
      private User findUser() {
           String email = findUserEmail();
           return userRepository.findUserByEmailIgnoreCase(email)

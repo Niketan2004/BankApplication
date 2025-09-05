@@ -20,7 +20,7 @@ public class AccountService {
 
 
      // creating a new account when new user is registered
-     @CachePut(value = "account", key = "#user.userId")
+     // @CachePut(value = "account", key = "#user.userId")
      public Account createAccount(UserAccountTemplate userAccountTemplate, User user) {
           Account account = new Account();
           account.setBalance(userAccountTemplate.getBalance());
@@ -33,7 +33,7 @@ public class AccountService {
      }
 
      // deleting the account when user is deleted
-     @CacheEvict(value="account", key="#account.accountNumber")
+     // @CacheEvict(value="account", key="#account.accountNumber")
      public boolean deleteAccount(Account account) {
           if (accountRepository.existsById(account.getAccountNumber())) {
                accountRepository.delete(account);
@@ -43,7 +43,7 @@ public class AccountService {
      }
 
      // CHECK ACOUNT BALANCE
-     @Cacheable(value = "accountBalance", key = "#accountNumber")
+     // @Cacheable(value = "accountBalance", key = "#accountNumber")
      public Double checkBalance(Long accountNumber) throws AccountNotFoundException {
           return accountRepository.findById(accountNumber).get().getBalance();
      }

@@ -89,18 +89,27 @@ const RegisterPage = () => {
                role: formData.role
           };
 
-          const result = await register(registerData);
+          console.log('Attempting registration with data:', registerData);
 
-          if (result.success) {
-               // Show success message and redirect to login
-               setTimeout(() => {
-                    navigate('/login', {
-                         state: {
-                              message: 'Registration successful! Please check your email and verify your account before logging in.',
-                              email: formData.email
-                         }
-                    });
-               }, 2000); // Give time for the toast to be seen
+          try {
+               const result = await register(registerData);
+               console.log('Registration result:', result);
+
+               if (result && result.success) {
+                    // Show success message and redirect to login
+                    setTimeout(() => {
+                         navigate('/login', {
+                              state: {
+                                   message: 'Registration successful! Please check your email and verify your account before logging in.',
+                                   email: formData.email
+                              }
+                         });
+                    }, 2000); // Give time for the toast to be seen
+               } else {
+                    console.error('Registration failed:', result?.error || 'Unknown error');
+               }
+          } catch (error) {
+               console.error('Registration error:', error);
           }
      };
 

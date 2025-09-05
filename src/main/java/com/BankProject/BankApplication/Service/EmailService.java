@@ -15,13 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailService {
      @Autowired
      private JavaMailSender javaMailSender;
+     // @Value("${BACKEND_URL}")
+     private String BACKEND_URL = System.getenv("BACKEND_URL");
 
      @Async
      public void sendVerificationEmail(String to, String token) {
           log.info("Token is: {}", token);
 
           String subject = "Verify your account";
-          String verificationUrl = "http://localhost:8080/user/verify?token=" + token;
+          String verificationUrl =BACKEND_URL+"/user/verify?token=" + token;
 
           String htmlContent = "<html>"
                     + "<body>"

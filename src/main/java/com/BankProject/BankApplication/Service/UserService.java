@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -85,10 +86,10 @@ public class UserService {
 
      // UPDATE THE EXISTING USER
 
-     @Caching(evict = { // Use @Caching to group multiple @CacheEvict annotations
-               @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
-               @CacheEvict(value = "users", key = "#existingUser.email", beforeInvocation = true)
-     })
+     // @Caching(evict = { // Use @Caching to group multiple @CacheEvict annotations
+     //           @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
+     //           @CacheEvict(value = "users", key = "#existingUser.email", beforeInvocation = true)
+     // })
      public CustomUserInfo updateUser(String id, User updatedUser) throws AccessDeniedException {
           // FINDS THE USER BY THE ID
           User existingUser = userRepository.findById(id)
@@ -117,7 +118,7 @@ public class UserService {
      }
 
      // deletes the user from the database
-     @CacheEvict(value = { "currentUserInfo", "users" }, allEntries = true)
+     // @CacheEvict(value = { "currentUserInfo", "users" }, allEntries = true)
      public Boolean deleteUser(String id) throws AccessDeniedException {
           boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                     .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
@@ -130,7 +131,7 @@ public class UserService {
      }
 
      // checking acount balance
-     @Cacheable(value = "accountBalance", key = "#root.target.findCurrentUserEmail()")
+     // @Cacheable(value = "accountBalance", key = "#root.target.findCurrentUserEmail()")
      public double accountBalance() throws AccountNotFoundException { 
           User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
                     .orElseThrow(() -> new UserNotFoundException(
@@ -179,7 +180,7 @@ public class UserService {
      }
 
      // Get current user info for dashboard
-     @Cacheable(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()")
+     // @Cacheable(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()")
      public CustomUserInfo getCurrentUserInfo() {
           User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -187,17 +188,17 @@ public class UserService {
      }
 
      // Find user by email
-     @Cacheable(value = "users", key = "#email")
+     // @Cacheable(value = "users", key = "#email")
      public User findUserByEmail(String email) {
           return userRepository.findUserByEmailIgnoreCase(email)
                     .orElse(null);
      }
 
      // Change password with current password validation
-     @Caching(evict = {
-               @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
-               @CacheEvict(value = "users", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true)
-     })
+     // @Caching(evict = {
+     //           @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
+     //           @CacheEvict(value = "users", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true)
+     // })
      public void changePassword(String currentPassword, String newPassword) {
           // get the user by email
           User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
@@ -211,7 +212,7 @@ public class UserService {
           userRepository.save(user);
      }
 
-     @Cacheable(value = "allUsers", key = "#page + '-' + #size")
+     // @Cacheable(value = "allUsers", key = "#page + '-' + #size")
      public Page<CustomUserInfo> getAllUsers(int page, int size) {
           Pageable pageable = PageRequest.of(page, size);
           Page<User> userPage = userRepository.findAll(pageable);
@@ -231,10 +232,10 @@ public class UserService {
      }
 
      // verifies the token sent from the email
-     @Caching(evict = {
-               @CacheEvict(value = "currentUserInfo", key = "#user.email", beforeInvocation = true),
-               @CacheEvict(value = "users", key = "#user.email", beforeInvocation = true)
-     })
+     // @Caching(evict = {
+     //           @CacheEvict(value = "currentUserInfo", key = "#user.email", beforeInvocation = true),
+     //           @CacheEvict(value = "users", key = "#user.email", beforeInvocation = true)
+     // })
      public ResponseEntity<?> verifyToken(String token) {
           VerificationToken verificationToken = verificationTokenRepository.findByToken(token);
           if (verificationToken != null) {
@@ -246,8 +247,7 @@ public class UserService {
                User user = verificationToken.getUser(); // gets the user from the token to enable the user.
                user.setIsEnabled(true);
                userRepository.save(user);
-               return ResponseEntity.ok().body("User Verified Succesfully!");
-
+               return ResponseEntity.ok().body("User Verified Successfully!");
           }
 
           return ResponseEntity.badRequest().body("Invalid token!");

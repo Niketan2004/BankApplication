@@ -205,14 +205,18 @@ export const AuthProvider = ({ children }) => {
                // Send registration request to backend
                const response = await api.post('/api/signup', userData);
 
-               if (response.status === 201) {
+               if (response.status === 201 || response.status === 200) {
                     // Registration successful
                     toast.success('Registration successful! Please check your email to verify your account before logging in.');
                     return { success: true, data: response.data };
+               } else {
+                    // Unexpected status code
+                    toast.error('Registration failed. Please try again.');
+                    return { success: false, error: 'Unexpected response status' };
                }
           } catch (error) {
                // Registration failed - extract error message
-               const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+               const errorMessage = error.response?.data?.message || error.response?.data || 'Registration failed. Please try again.';
                toast.error(errorMessage);
                return { success: false, error: errorMessage };
           } finally {

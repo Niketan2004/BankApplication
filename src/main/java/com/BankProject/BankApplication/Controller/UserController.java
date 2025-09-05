@@ -1,5 +1,6 @@
 package com.BankProject.BankApplication.Controller;
 
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.util.Map;
 
@@ -73,8 +74,26 @@ public class UserController {
      }
 
      @GetMapping("/verify")
-     public ResponseEntity<?> getMethodName(@RequestParam String token) {
-          return userService.verifyToken(token);
+     public ResponseEntity<?> verifyEmail(@RequestParam String token) {
+          ResponseEntity<?> result = userService.verifyToken(token);
+
+          // Get the frontend URL from environment or use default
+          String frontendUrl = System.getenv("FRONTEND_URL");
+          if (frontendUrl == null || frontendUrl.isEmpty()) {
+               frontendUrl = "http://localhost:3000";
+          }
+
+          if (result.getStatusCode().is2xxSuccessful()) {
+               // Redirect to frontend success page
+               return ResponseEntity.status(HttpStatus.FOUND)
+                         .location(URI.create(frontendUrl + "/verify-email?token=" + token + "&status=success"))
+                         .build();
+          } else {
+               // Redirect to frontend error page
+               return ResponseEntity.status(HttpStatus.FOUND)
+                         .location(URI.create(frontendUrl + "/verify-email?token=" + token + "&status=error"))
+                         .build();
+          }
      }
 
 }
