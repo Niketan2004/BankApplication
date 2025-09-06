@@ -8,16 +8,13 @@ import java.util.UUID;
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -51,12 +48,19 @@ public class UserService {
 
      @Autowired
      private VerificationTokenRepository verificationTokenRepository;
+
+     // cache manager bean
+     @Autowired
+     private CacheManager cacheManager;
+
+
      // ====================USER SIDE FUNCTIONALITIES=============================
 
      // registers a new user
      @Transactional
      public CustomUserInfo registerUser(UserAccountTemplate userAccountTemplate) throws UserAlreadyExistsException {
           if (userRepository.findUserByEmailIgnoreCase(userAccountTemplate.getEmail()).isEmpty()) {
+               log.info("New User is creating account with email {}", userAccountTemplate.getEmail());
                User user = new User();
                // setting users details
                user.setFullName(userAccountTemplate.getFullName());
@@ -65,9 +69,12 @@ public class UserService {
                user.setRole(userAccountTemplate.getRole());
                user.setIsEnabled(false);
                User savedUser = userRepository.save(user);
+               log.info("User has been created for the email {}", user.getEmail());
                // setting an account to the user
+               log.info("Creating account for the user {}", user.getEmail());
                savedUser.setAccount(accountService.createAccount(userAccountTemplate, savedUser));
                // saving user into database
+               log.info("User Account has been created Succesfully, Saving user {} to database", user.getEmail());
                savedUser = userRepository.save(savedUser);
 
                // -=================== Email verification ========================
@@ -77,23 +84,55 @@ public class UserService {
                verificationToken.setUser(savedUser);
                verificationToken.setExpiryDate(LocalDateTime.now().plusHours(2));
                verificationTokenRepository.save(verificationToken);
+               log.info("Sending email verification link to the user");
                emailService.sendVerificationEmail(savedUser.getEmail(), token);
 
                return createCustomUserInfo(savedUser);
           }
+          log.error("User with email {} already exists", userAccountTemplate.getEmail());
           throw new UserAlreadyExistsException("User with email " + userAccountTemplate.getEmail() + " already exists");
      }
 
-     // UPDATE THE EXISTING USER
-
-     // @Caching(evict = { // Use @Caching to group multiple @CacheEvict annotations
-     //           @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
-     //           @CacheEvict(value = "users", key = "#existingUser.email", beforeInvocation = true)
-     // })
+     // UPDATE THE EXISTING USER in cache and db by calling updateExistingUser()
+     // method
      public CustomUserInfo updateUser(String id, User updatedUser) throws AccessDeniedException {
+          // user cache
+          Cache userCache = cacheManager.getCache("user");
+          // check cache memory for the users
+
+          if (userCache != null) {
+               // find user from cache
+               User existingCacheUser = userCache.get(id, User.class);
+               // check user is available in cache
+               if (existingCacheUser != null) {
+                    // chaange existingCacheUser to the updated version
+                    existingCacheUser = updateExistingUser(existingCacheUser, updatedUser, id);
+                    // save to DB
+                    userRepository.save(existingCacheUser);
+                    // add to cache memory
+                    userCache.put(id, existingCacheUser);
+                    return createCustomUserInfo(existingCacheUser);
+               }
+          }
+          // if user is not in the cache memory then DB call will be made and updated it
+          // in DB as well as in cache memory
           // FINDS THE USER BY THE ID
           User existingUser = userRepository.findById(id)
-                    .orElseThrow(() -> new UserNotFoundException("user for the given id " + id + " not found"));
+                    .orElseThrow(
+                              () -> new UserNotFoundException("user for the given id " + id + " not found"));
+          // save in DB
+          User savedUser = userRepository.save(updateExistingUser(existingUser, updatedUser, id));
+          // put saved user into cache
+          if (userCache != null) {
+               userCache.put(id, savedUser);
+          }
+          return createCustomUserInfo(updateExistingUser(existingUser, updatedUser, id));
+     }
+
+     // updating user
+     // this method is responsible for the user updation
+     protected User updateExistingUser(User existingUser, User updatedUser, String id)
+               throws AccessDeniedException {
           if (validateUser(id)) {
                // IF USER'S FULL NAME IS PROVIDED THEN UPDATES IT IF NOT THEN KEEP THE EXISTING
                // ONE
@@ -109,21 +148,23 @@ public class UserService {
                if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
                     existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
                }
-               // SAVES THE UPDATED USER INTO DATABASE
-               userRepository.save(existingUser);
-               return createCustomUserInfo(existingUser);
+               return existingUser;
           } else {
                throw new AccessDeniedException("You can only edit Your account");
           }
      }
 
      // deletes the user from the database
-     // @CacheEvict(value = { "currentUserInfo", "users" }, allEntries = true)
      public Boolean deleteUser(String id) throws AccessDeniedException {
           boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                     .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
           if (isAdmin || validateUser(id)) {
                userRepository.deleteById(id);
+               // Deleting user from cache too
+               Cache userCache = cacheManager.getCache("user");
+               if (userCache != null) {
+                    userCache.evict(id);
+               }
                return true;
           } else {
                throw new AccessDeniedException("You can only delete Your account");
@@ -131,13 +172,12 @@ public class UserService {
      }
 
      // checking acount balance
-     // @Cacheable(value = "accountBalance", key = "#root.target.findCurrentUserEmail()")
-     public double accountBalance() throws AccountNotFoundException { 
+     public double accountBalance() throws AccountNotFoundException {
           User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
                     .orElseThrow(() -> new UserNotFoundException(
                               "user for the given email  " + findCurrentUserEmail() + " not found"));
-                              
-                              log.info("called balance method ");
+
+          log.info("called balance method ");
           return accountService.checkBalance(user.getAccount().getAccountNumber());
      }
 
@@ -180,7 +220,6 @@ public class UserService {
      }
 
      // Get current user info for dashboard
-     // @Cacheable(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()")
      public CustomUserInfo getCurrentUserInfo() {
           User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -188,17 +227,12 @@ public class UserService {
      }
 
      // Find user by email
-     // @Cacheable(value = "users", key = "#email")
      public User findUserByEmail(String email) {
           return userRepository.findUserByEmailIgnoreCase(email)
                     .orElse(null);
      }
 
      // Change password with current password validation
-     // @Caching(evict = {
-     //           @CacheEvict(value = "currentUserInfo", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true),
-     //           @CacheEvict(value = "users", key = "#root.target.findCurrentUserEmail()", beforeInvocation = true)
-     // })
      public void changePassword(String currentPassword, String newPassword) {
           // get the user by email
           User user = userRepository.findUserByEmailIgnoreCase(findCurrentUserEmail())
@@ -212,7 +246,6 @@ public class UserService {
           userRepository.save(user);
      }
 
-     // @Cacheable(value = "allUsers", key = "#page + '-' + #size")
      public Page<CustomUserInfo> getAllUsers(int page, int size) {
           Pageable pageable = PageRequest.of(page, size);
           Page<User> userPage = userRepository.findAll(pageable);
@@ -232,10 +265,6 @@ public class UserService {
      }
 
      // verifies the token sent from the email
-     // @Caching(evict = {
-     //           @CacheEvict(value = "currentUserInfo", key = "#user.email", beforeInvocation = true),
-     //           @CacheEvict(value = "users", key = "#user.email", beforeInvocation = true)
-     // })
      public ResponseEntity<?> verifyToken(String token) {
           VerificationToken verificationToken = verificationTokenRepository.findByToken(token);
           if (verificationToken != null) {
@@ -258,6 +287,6 @@ public class UserService {
      public String findCurrentUserEmail() {
           return SecurityContextHolder.getContext().getAuthentication().getName();
      }
-     // OTHER FUNCTIONALITIES SUCH AS DELETE AND CREATE USER IS APLLICABLE SAME AS
+     // OTHER FUNCTIONALITIES SUCH AS DELETE AND CREATE USER IS APPLICABLE SAME AS
      // THE IUSER METHODS
 }

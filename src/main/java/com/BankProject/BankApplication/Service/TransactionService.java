@@ -2,14 +2,17 @@ package com.BankProject.BankApplication.Service;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.naming.directory.InvalidAttributesException;
 import javax.security.auth.login.AccountNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,13 +46,48 @@ public class TransactionService {
      @Autowired
      private AccountRepository accountRepository;
 
+     // cache manager
+     @Autowired
+     private CacheManager cacheManager;
+
+
+
      // Logic behind getting all the transaction history
-     // @Cacheable(value = "transactionHistory", key = "#root.target.findUserEmail()")
      public Page<TransactionResponseDTO> checkTransactionHistory(int page, int size) {
+          // transaction cache
+          Cache txCache = cacheManager.getCache("transactions");
           User user = findUser();
           log.info("Checking transaction history of user {}", user.getEmail());
           Pageable pageable = PageRequest.of(page, size);
-          return transactionRepository.findByAccount_AccountNumber(user.getAccount().getAccountNumber(), pageable)
+          if (txCache != null) {
+               // get the list of transactions if available in cache memory
+               List<Transactions> txList = txCache.get(user.getAccount().getAccountNumber(), List.class);
+               // check if the transactions list is availabe for the respective account
+               if (txList != null && !txList.isEmpty()) {
+                    log.info("Returnig the list of transactions from the cache memory for the user {}",
+                              user.getEmail());
+                    // Applying pagination manually
+                    int start = Math.min((int) pageable.getOffset(), txList.size()); // index of the first record for
+                                                                                     // the current page
+                    int end = Math.min((start + pageable.getPageSize()), txList.size()); // the index where the page
+                                                                                         // should end
+                    // converting it into pagiable of the TransactionResponseDto
+                    List<TransactionResponseDTO> responseList = txList.subList(start, end)
+                              .stream()
+                              .map(transaction -> new TransactionResponseDTO(
+                                        transaction.getTransactionId(),
+                                        transaction.getAmount(),
+                                        transaction.getType(),
+                                        transaction.getTime(),
+                                        transaction.getAccount().getAccountNumber()))
+                              .toList();
+                              // returning the response of the pageable
+                    return new PageImpl<>(responseList, pageable, txList.size());
+               }
+          }
+          log.info("Cache failed : Calling DB for the transaction history of the user {}", user.getEmail());
+          return transactionRepository
+                    .findByAccount_AccountNumber(user.getAccount().getAccountNumber(), pageable)
                     .map(transaction -> new TransactionResponseDTO(
                               transaction.getTransactionId(),
                               transaction.getAmount(),
@@ -59,12 +97,13 @@ public class TransactionService {
      }
 
      // Deposit Amount
-     // @Caching(evict = {
-     //           @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true),
-     //           @CacheEvict(value = "accountBalance", key = "#accountNumber")
-     // })
      @Transactional
      public TransactionResponseDTO deposit(Double amount) throws IllegalArgumentException {
+          
+          // balance cache
+          Cache balanceCache = cacheManager.getCache("balances");
+          // account cache
+          Cache accountCache = cacheManager.getCache("accounts");
           if (amount < 0) {
                log.error("Amount should not  Negative!");
                throw new IllegalArgumentException("Amount should not be negative");
@@ -73,14 +112,24 @@ public class TransactionService {
           Account account = user.getAccount();
           account.setBalance(account.getBalance() + amount);
           accountRepository.save(account);
+          if (accountCache !=null && balanceCache != null) {
+               accountCache.put(account.getAccountNumber(), account);
+               balanceCache.put(account.getAccountNumber(), account.getBalance());
+               
+          }
+
           return createTransactions(account, amount, TransactionTypes.DEPOSIT);
      }
 
      // Withdraw amount
-     // @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
      @Transactional
      public TransactionResponseDTO withdraw(Double amount)
                throws IllegalArgumentException, InsufficientAmountException {
+                    
+          // balance cache
+          Cache balanceCache = cacheManager.getCache("balances");
+          // account cache
+          Cache accountCache = cacheManager.getCache("accounts");
           if (amount < 0) {
                throw new IllegalArgumentException("Amount should be greater than 0");
           }
@@ -91,12 +140,16 @@ public class TransactionService {
           }
           account.setBalance(account.getBalance() - amount);
           accountRepository.save(account);
+          if (accountCache != null && balanceCache != null) {
+               accountCache.put(account.getAccountNumber(), account);
+               balanceCache.put(account.getAccountNumber(), account.getBalance());
+
+          }
           return createTransactions(account, amount, TransactionTypes.WITHDRAW);
      }
 
      // transfer amount
      @Transactional
-     // @CacheEvict(value = "transactionHistory", key = "#root.target.findUserEmail()", beforeInvocation = true)
      public TransactionResponseDTO transferAmount(TransferSlip transferSlip)
                throws AccountNotFoundException, InvalidAttributesException, AccessDeniedException {
           if (transferSlip.getSenderAccountNumber() == null || transferSlip.getRecieverAccountNumber() == null
@@ -141,6 +194,20 @@ public class TransactionService {
           accountRepository.save(recieverAccount);
           // CREATED TRANSACTION FOR THE RECIEVERS ACCOUNT
           createTransactions(recieverAccount, transferSlip.getAmount(), TransactionTypes.CREDIT);
+          
+          // balance cache
+          Cache balanceCache = cacheManager.getCache("balances");
+          // account cache
+          Cache accountCache = cacheManager.getCache("accounts");
+          // adding it to cache
+          if (accountCache != null && balanceCache != null) {
+               accountCache.put(senderAccount.getAccountNumber(), senderAccount);
+               accountCache.put(recieverAccount.getAccountNumber(), recieverAccount);
+               balanceCache.put(senderAccount.getAccountNumber(), senderAccount.getBalance());
+               balanceCache.put(recieverAccount.getAccountNumber(), recieverAccount.getBalance());
+
+
+          }
           // RETURNS SENDERS TRANSACTIONS DETAILS
           return senderTransactions;
      }
@@ -154,17 +221,33 @@ public class TransactionService {
           transaction.setAmount(amount);
           transaction.setTime(LocalDateTime.now());
           transactionRepository.save(transaction); // Save transaction record
+
+          // Applying caching logic
+          Cache cacheTransactions = cacheManager.getCache("transactions");
+          // checks cache is available
+          if (cacheTransactions != null) {
+               List<Transactions> txList = cacheTransactions.get(account.getAccountNumber(), List.class);
+               // if transactions list is empty then create it
+               if (txList == null) {
+                    txList = new ArrayList<>();
+               }
+               // add the transctions to the list
+               txList.add(transaction);
+               // puts it into cache memory
+               cacheTransactions.put(account.getAccountNumber(), txList);
+
+          }
           TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
           transactionResponseDTO.setAmount(amount);
           transactionResponseDTO.setTime(transaction.getTime());
           transactionResponseDTO.setTransactionId(transaction.getTransactionId());
           transactionResponseDTO.setType(transaction.getType());
           transactionResponseDTO.setAccountNumber(account.getAccountNumber());
+
           return transactionResponseDTO;
      }
 
      // Finds the respective user
-     // @Cacheable(value = "users", key = "#root.target.findUserEmail()")
      private User findUser() {
           String email = findUserEmail();
           return userRepository.findUserByEmailIgnoreCase(email)

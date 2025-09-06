@@ -51,22 +51,4 @@ public class EmailService {
                log.error("Failed to send HTML email to: {}", to, e);
           }
      }
-
-     // @Async
-     // public void sendVerificationEmail(String to, String token) {
-     // log.info("Token is: {}", token);
-     // String subject = "Verify your account";
-     // String verificationUrl = "http://localhost:8080/user/verify?token=" + token;
-
-     // String message = "Thank you for registering.\nPlease click the link below to
-     // verify your account:\n"
-     // + verificationUrl;
-
-     // SimpleMailMessage email = new SimpleMailMessage();
-     // email.setTo(to);
-     // email.setSubject(subject);
-     // email.setText(message);
-
-     // javaMailSender.send(email);
-     // }
 }
